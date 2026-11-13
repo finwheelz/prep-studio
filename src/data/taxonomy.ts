@@ -1,0 +1,202 @@
+import type { Category, Company, Competency, Pillar, Track } from "@/lib/types";
+
+export const PILLARS: Pillar[] = [
+  {
+    id: "data",
+    label: "Data & Analytics Engine",
+    short: "Data",
+    blurb: "SQL, Python for data, Excel and BI logic. The technical OA core.",
+    modality: "Split-pane code studio",
+  },
+  {
+    id: "ml",
+    label: "Applied ML & Systems",
+    short: "ML",
+    blurb: "Classical ML, deep learning, LLM/RAG and system design for data.",
+    modality: "Architecture & diagnostic canvas",
+  },
+  {
+    id: "product",
+    label: "Product Sense & Business Analytics",
+    short: "Product",
+    blurb: "Metric-dip RCA, experimentation, guesstimates and unit economics.",
+    modality: "Case-tree workbench",
+  },
+  {
+    id: "drill",
+    label: "Daily Drill & OA Simulator",
+    short: "Drill",
+    blurb: "One SQL, one ML concept and one case a day. Timed OA room.",
+    modality: "Triad + assessment room",
+  },
+];
+
+export const COMPETENCIES: { id: Competency; label: string; short: string }[] = [
+  { id: "sql", label: "SQL", short: "SQL" },
+  { id: "python_stats", label: "Python / Stats", short: "Py/Stats" },
+  { id: "ml_llm", label: "ML / LLM", short: "ML/LLM" },
+  { id: "product", label: "Product Sense", short: "Product" },
+  { id: "experimentation", label: "Experimentation / AB", short: "Exp/AB" },
+  { id: "system_design", label: "System Design", short: "SysDesign" },
+];
+
+export const TRACKS: Track[] = [
+  { id: "fintech", label: "Fintech & Risk", blurb: "Lending, credit risk, banks' analytics centres" },
+  { id: "ecommerce", label: "E-Commerce & Quick Commerce", blurb: "Marketplaces, food delivery, dark stores" },
+  { id: "consulting", label: "Top Tier Analytics Consulting", blurb: "Decision analytics, BA, advisory" },
+  { id: "apm", label: "Product APM Cohorts", blurb: "APM, product analyst, program manager" },
+];
+
+export const CATEGORIES: Category[] = [
+  { id: "sql/joins", pillar: "data", competency: "sql", label: "Joins & anti-joins" },
+  { id: "sql/window", pillar: "data", competency: "sql", label: "Window functions" },
+  { id: "sql/gaps-islands", pillar: "data", competency: "sql", label: "Gaps & islands" },
+  { id: "sql/cohorts", pillar: "data", competency: "sql", label: "Cohorts & retention" },
+  { id: "sql/time-series", pillar: "data", competency: "sql", label: "Date logic & rolling metrics" },
+  { id: "python/dsa-lite", pillar: "data", competency: "python_stats", label: "DSA-lite" },
+  { id: "python/pandas", pillar: "data", competency: "python_stats", label: "Pandas" },
+  { id: "python/metrics", pillar: "data", competency: "python_stats", label: "Metrics from scratch" },
+  { id: "ml/metrics", pillar: "ml", competency: "ml_llm", label: "Metric trade-offs" },
+  { id: "ml/regularization", pillar: "ml", competency: "ml_llm", label: "Regularisation" },
+  { id: "ml/optimization", pillar: "ml", competency: "ml_llm", label: "Optimisation" },
+  { id: "ml/credit", pillar: "ml", competency: "ml_llm", label: "Credit scorecards" },
+  { id: "llm/rag", pillar: "ml", competency: "ml_llm", label: "RAG & LLM apps" },
+  { id: "sysdesign/features", pillar: "ml", competency: "system_design", label: "Feature & serving pipelines" },
+  { id: "product/rca", pillar: "product", competency: "product", label: "Metric-dip RCA" },
+  { id: "product/metrics", pillar: "product", competency: "product", label: "Metrics & North Star" },
+  { id: "product/guesstimate", pillar: "product", competency: "product", label: "Guesstimates" },
+  { id: "product/unit-economics", pillar: "product", competency: "product", label: "Pricing & unit economics" },
+  { id: "exp/ab", pillar: "product", competency: "experimentation", label: "A/B test design" },
+];
+
+/**
+ * Company tags are limited to companies whose process is documented in the
+ * BITS Hyderabad Placement Chronicles (Sem 2, AY 2025-26, plus Eternal for AY 2026-27).
+ * A problem is tagged with a company only when a student reported that company asking it.
+ */
+export const COMPANIES: Company[] = [
+  {
+    id: "eternal",
+    name: "Eternal",
+    roles: ["Product Analyst", "Associate Program Manager"],
+    tracks: ["ecommerce", "apm"],
+    process: ["OA (HackerRank, 90 min)", "Interview 1: SQL on paper", "Interview 2: harder SQL + metrics", "HR"],
+    tested: ["SQL (CTEs, windows, streaks)", "Guesstimates", "Metric RCA", "North Star", "t-test, outliers", "Excel lookups"],
+    cgpaCut: 6.98,
+    cycle: "AY26-27",
+  },
+  {
+    id: "zs",
+    name: "ZS Associates",
+    roles: ["Decision Analytics Associate"],
+    tracks: ["consulting"],
+    process: ["Aptitude OA", "Verbal OA", "Case study (40 min)", "EBI round"],
+    tested: ["Data-backed case", "Market-entry graphs", "Guesstimate", "Puzzle"],
+    cgpaCut: 7.0,
+    cycle: "AY25-26",
+  },
+  {
+    id: "deloitte",
+    name: "Deloitte USI",
+    roles: ["Business Analyst"],
+    tracks: ["consulting"],
+    process: ["OA (verbal, aptitude, SQL/Python/Excel MCQs)", "Case + resume", "Culture fit"],
+    tested: ["Profitability case", "Market entry", "Guesstimates", "Basic finance"],
+    cgpaCut: 6.0,
+    cycle: "AY25-26",
+  },
+  {
+    id: "indus",
+    name: "IndusInsights",
+    roles: ["Associate"],
+    tracks: ["consulting", "fintech"],
+    process: ["OA", "Business maths + RCA", "Guesstimate", "Finance case", "HR"],
+    tested: ["Price/cost/volume/profit", "Footfall RCA", "Guesstimate", "Lending case"],
+    cgpaCut: 7.3,
+    cycle: "AY25-26",
+  },
+  {
+    id: "wells",
+    name: "Wells Fargo",
+    roles: ["Program Analyst"],
+    tracks: ["fintech"],
+    process: ["Offline OA (5 sections)", "Technical", "Managerial", "HR"],
+    tested: ["sklearn from memory", "F-score", "Hypothesis testing", "Arrays / hashmaps / sliding window"],
+    cgpaCut: 7.5,
+    cycle: "AY25-26",
+  },
+  {
+    id: "lloyds",
+    name: "Lloyds Technology Centre",
+    roles: ["Finance AM, Data Science", "Risk Analyst"],
+    tracks: ["fintech"],
+    process: ["Pen-and-paper OA", "Group discussion", "Technical", "HR"],
+    tested: ["Python + pandas/numpy", "Basic DSA", "ML concepts", "Credit risk"],
+    cgpaCut: 7.0,
+    cycle: "AY25-26",
+  },
+  {
+    id: "hive",
+    name: "Hive Financial Systems",
+    roles: ["Data Analyst"],
+    tracks: ["fintech"],
+    process: ["OA (TestGorilla)", "Resume", "ML deep-dive", "HR + problem solving"],
+    tested: ["SQL coding", "Quant / LR / DI", "Feature engineering", "ML fundamentals"],
+    cgpaCut: null,
+    cycle: "AY25-26",
+  },
+  {
+    id: "highradius",
+    name: "HighRadius",
+    roles: ["Data Analyst", "Agent Product Builder"],
+    tracks: ["fintech", "apm"],
+    process: ["OA", "Projects + puzzles + case", "SQL + Python + app design", "Managerial"],
+    tested: ["Puzzles", "SQL", "LLM app design", "Agent system design", "Deployment strategy"],
+    cgpaCut: null,
+    cycle: "AY25-26",
+  },
+  {
+    id: "meesho",
+    name: "Meesho",
+    roles: ["Senior Associate, Business Management"],
+    tracks: ["ecommerce", "apm"],
+    process: ["Resume shortlist", "Interview 1", "Interview 2"],
+    tested: ["Demand- and supply-side guesstimates", "GTM", "KPIs", "RCA"],
+    cgpaCut: null,
+    cycle: "AY25-26",
+  },
+  {
+    id: "aspect",
+    name: "Aspect Ratio",
+    roles: ["Data Analyst"],
+    tracks: ["consulting"],
+    process: ["OA", "Interview 1", "Interview 2"],
+    tested: ["SQL / Python", "Probability puzzles", "Guesstimates", "M&A case"],
+    cgpaCut: null,
+    cycle: "AY25-26",
+  },
+  {
+    id: "qualizeal",
+    name: "Qualizeal",
+    roles: ["GenAI Developer"],
+    tracks: ["apm"],
+    process: ["Resume shortlist", "Build a chatbot (offline)", "Technical + HR"],
+    tested: ["LLM APIs", "Prompts", "JSON handling", "Python fundamentals"],
+    cgpaCut: null,
+    cycle: "AY25-26",
+  },
+  {
+    id: "pwc-ac",
+    name: "PwC Acceleration Center",
+    roles: ["Associate, CEDA"],
+    tracks: ["consulting"],
+    process: ["Resume shortlist", "Technical 1", "Technical 2"],
+    tested: ["SQL joins + aggregation", "ML fundamentals", "Guesstimate", "Data pipelines"],
+    cgpaCut: 6.0,
+    cycle: "AY25-26",
+  },
+];
+
+export const companyById = (id: string) => COMPANIES.find((c) => c.id === id);
+export const pillarById = (id: string) => PILLARS.find((p) => p.id === id);
+export const categoryById = (id: string) => CATEGORIES.find((c) => c.id === id);

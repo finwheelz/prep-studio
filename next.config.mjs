@@ -1,6 +1,11 @@
 /** @type {import('next').NextConfig} */
+// Static hosting (GitHub Pages): STATIC_EXPORT=1 writes a plain site to ./out.
+// NEXT_PUBLIC_BASE_PATH is the sub-path the site is served from, e.g. "/prep-studio".
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 const nextConfig = {
   reactStrictMode: true,
+  ...(process.env.STATIC_EXPORT ? { output: "export", trailingSlash: true } : {}),
+  basePath,
   // PGlite (Postgres in WASM) is browser-only here; keep it out of the server bundle.
   experimental: { serverComponentsExternalPackages: ["@electric-sql/pglite"] },
   webpack: (config, { webpack, isServer }) => {
