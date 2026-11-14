@@ -2,9 +2,9 @@
 
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
-import { Boxes, BrainCircuit, Database, Flame, LayoutDashboard, Moon, PanelLeft, Search, Sun, Timer, Workflow } from "lucide-react";
+import { BookOpen, Boxes, Code2, Flame, Layers, LayoutDashboard, Moon, PanelLeft, Search, Sun, Timer } from "lucide-react";
 import { useStore, streakOf } from "@/lib/store";
 import { useBootStore, useHotkey, useHydrated, useIsMac } from "@/lib/hooks";
 import { cn, dayKey } from "@/lib/utils";
@@ -14,9 +14,9 @@ import { dailyFor } from "@/lib/daily";
 
 const NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard, match: (p: string) => p === "/" },
-  { href: "/problems?pillar=data", label: "Data & Analytics", icon: Database, pillar: "data" },
-  { href: "/problems?pillar=ml", label: "Applied ML & Systems", icon: BrainCircuit, pillar: "ml" },
-  { href: "/problems?pillar=product", label: "Product & Business", icon: Workflow, pillar: "product" },
+  { href: "/learn", label: "Learn", icon: BookOpen, match: (p: string) => p.startsWith("/learn") || p.startsWith("/quiz") },
+  { href: "/problems", label: "Practise", icon: Code2, match: (p: string) => p.startsWith("/problems") || p.startsWith("/p/") },
+  { href: "/revise", label: "Revise", icon: Layers, match: (p: string) => p.startsWith("/revise") },
   { href: "/drill", label: "Daily Drill & OA", icon: Timer, match: (p: string) => p.startsWith("/drill") },
 ] as const;
 
@@ -32,12 +32,10 @@ function ThemeSync() {
 
 function NavLinks({ collapsed }: { collapsed: boolean }) {
   const pathname = usePathname();
-  const params = useSearchParams();
-  const pillar = pathname === "/problems" ? params.get("pillar") : null;
   return (
     <nav className="flex flex-col gap-px p-1.5" aria-label="Primary">
       {NAV.map((n) => {
-        const active = "match" in n ? n.match(pathname) : pillar === n.pillar;
+        const active = n.match(pathname);
         const Icon = n.icon;
         const link = (
           <Link
@@ -154,7 +152,7 @@ export function Shell({ children }: { children: ReactNode }) {
                 className="ml-1 flex items-center gap-2 h-7 w-full min-w-0 max-w-sm rounded border border-line bg-bg px-2 text-xs text-faint hover:border-line-strong transition-colors"
               >
                 <Search {...ICON} />
-                <span className="truncate">Search problems, topics, companies…</span>
+                <span className="truncate">Search notes, topics, problems…</span>
                 <span className="ml-auto flex gap-1 shrink-0 max-sm:hidden">
                   <Kbd>{mac ? "⌘" : "Ctrl"}</Kbd>
                   <Kbd>K</Kbd>

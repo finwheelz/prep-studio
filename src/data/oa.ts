@@ -1,10 +1,66 @@
-import type { OaSet } from "@/lib/types";
+import type { OaItem, OaSet, TrackKey } from "@/lib/types";
+import { QUIZ, TOPICS } from "./syllabus";
+import { shuffled } from "@/lib/utils";
+
+/** Draw a fixed, reproducible paper from the quiz bank: n items spread across the given tracks' topics. */
+function paper(tracks: TrackKey[], n: number, seed: number, modules?: string[]): OaItem[] {
+  const topics = TOPICS.filter((t) => tracks.includes(t.track) && (!modules || modules.includes(t.module)));
+  const title = Object.fromEntries(topics.map((t) => [t.id, t.title]));
+  const pool = shuffled(QUIZ.filter((q) => q.topic in title), seed);
+  // Round-robin over topics so no topic dominates.
+  const byTopic = new Map<string, typeof pool>();
+  for (const q of pool) byTopic.set(q.topic, [...(byTopic.get(q.topic) ?? []), q]);
+  const out: OaItem[] = [];
+  while (out.length < n && [...byTopic.values()].some((v) => v.length)) {
+    for (const v of byTopic.values()) {
+      const q = v.shift();
+      if (q && out.length < n) out.push({ id: q.id, topic: title[q.topic], prompt: q.prompt, options: q.options, answer: q.answer, tol: q.tol, explain: q.explain });
+    }
+  }
+  return out;
+}
 
 /**
  * OA sets mirror the structure students reported, not the questions. Items are practice
  * questions written for this bank.
  */
 export const OA_SETS: OaSet[] = [
+  {
+    id: "oa-aptitude-full",
+    title: "Full aptitude paper: quant, reasoning, DI, verbal",
+    mirrors: "The aptitude gate most non-core companies open with: mixed sections under one clock",
+    minutes: 45,
+    tracks: [],
+    codingIds: [],
+    items: paper(["aptitude"], 40, 11),
+  },
+  {
+    id: "oa-ds-concepts",
+    title: "Data science concepts: statistics, ML, deep learning, GenAI",
+    mirrors: "Concept MCQs and calculations of the kind used in data-science and AI screening tests",
+    minutes: 35,
+    tracks: [],
+    codingIds: ["pw-gini", "pw-confusion"],
+    items: paper(["analyst", "ml"], 30, 23),
+  },
+  {
+    id: "oa-technical-analyst",
+    title: "Analyst technical: SQL, Python, Excel and BI concepts + coding",
+    mirrors: "Technical MCQ sections that test SQL, Python and Excel, followed by queries to write",
+    minutes: 40,
+    tracks: [],
+    codingIds: ["sa-having-3", "sw-first-order", "pw-groupby-sum"],
+    items: paper(["foundations"], 24, 37),
+  },
+  {
+    id: "oa-product",
+    title: "Product and business reasoning",
+    mirrors: "Metrics, experiments, cases, unit economics and guesstimate arithmetic",
+    minutes: 25,
+    tracks: [],
+    codingIds: [],
+    items: paper(["product"], 24, 51),
+  },
   {
     id: "oa-analyst",
     title: "Analyst OA: aptitude + probability + SQL + Python",

@@ -1,6 +1,9 @@
 // Runs every SQL reference solution against every seed in Node and prints the result.
 import { PGlite } from "@electric-sql/pglite";
-import { CODE_PROBLEMS } from "../src/data/problems-code";
+import { CODE_PROBLEMS as BASE } from "../src/data/problems-code";
+import { SQL_MORE } from "../src/data/problems-sql-more";
+const CODE_PROBLEMS = [...BASE, ...SQL_MORE];
+const QUIET = process.argv.includes("--quiet");
 import { DATASETS } from "../src/data/datasets";
 
 const pg = new PGlite();
@@ -15,8 +18,8 @@ for (const p of CODE_PROBLEMS) {
     try {
       const res = await pg.exec(p.solution, { rowMode: "array" });
       const last = res[res.length - 1];
-      console.log(`\n${p.id} [${seed}] ${last.fields.map((f) => f.name).join(" | ")}`);
-      for (const r of last.rows as unknown[][]) console.log("  " + r.map((c) => (c instanceof Date ? c.toISOString().slice(0, 10) : String(c))).join(" | "));
+      console.log(`${QUIET ? "" : "\n"}${p.id} [${seed}] ${last.fields.map((f) => f.name).join(" | ")} -> ${last.rows.length} rows`);
+      if (!QUIET) for (const r of last.rows as unknown[][]) console.log("  " + r.map((c) => (c instanceof Date ? c.toISOString().slice(0, 10) : String(c))).join(" | "));
       // Starter must at least parse and run.
       await pg.exec(p.starter);
     } catch (e) {

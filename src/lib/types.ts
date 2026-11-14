@@ -374,4 +374,70 @@ export interface UserProgress {
   /** Which triad slots were completed on which day. */
   dailyDone: Record<string, Partial<Record<TriadSlot, boolean>>>;
   oaResults: OaResult[];
+  /** Per-question quiz history. */
+  quiz: Record<string, QuizStat>;
+  /** Flashcard scheduling. Cards never reviewed have no entry. */
+  cards: Record<string, CardState>;
+  /** Topics whose notes were marked as read. */
+  read: Record<string, boolean>;
+}
+
+// ───────────────────────── Syllabus: learn / practise / revise ─────────────────────────
+
+export type TrackKey = "foundations" | "aptitude" | "analyst" | "ml" | "product";
+
+export interface Resource {
+  label: string;
+  url: string;
+  note?: string;
+}
+
+/** One syllabus topic. Everything else (quiz items, cards, coding problems) hangs off a topic id. */
+export interface Topic {
+  id: string;
+  track: TrackKey;
+  module: string;
+  title: string;
+  summary: string;
+  /** Markdown-lite study notes. */
+  notes: string;
+  resources?: Resource[];
+  /** Problem categories whose coding / case problems belong to this topic. */
+  categories?: string[];
+}
+
+export interface QuizItem {
+  id: string;
+  topic: string;
+  /** 1 easy, 2 medium, 3 hard. */
+  d: 1 | 2 | 3;
+  prompt: string;
+  /** MCQ when set; numeric otherwise. */
+  options?: string[];
+  answer: number;
+  tol?: number;
+  explain: string;
+}
+
+export interface Card {
+  id: string;
+  topic: string;
+  front: string;
+  back: string;
+}
+
+export interface QuizStat {
+  right: number;
+  wrong: number;
+  last: number;
+  /** Result of the most recent attempt. */
+  ok: boolean;
+}
+
+/** SM-2 scheduling state for one flashcard. */
+export interface CardState {
+  ease: number;
+  interval: number;
+  reps: number;
+  due: string; // YYYY-MM-DD
 }

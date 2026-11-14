@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
-import type { TrackId } from "@/lib/types";
+import { useMemo } from "react";
 import { useStore, competencyStats, streakOf } from "@/lib/store";
 import { useHydrated } from "@/lib/hooks";
-import { COMPANIES, COMPETENCIES, TRACKS } from "@/data/taxonomy";
-import { PROBLEMS, KIND_LABEL } from "@/data/problems";
+import { COMPETENCIES } from "@/data/taxonomy";
+import { TRACK_META } from "@/data/syllabus";
+import { trackProgress } from "@/lib/progress";
 import { cn } from "@/lib/utils";
-import { Bar, DifficultyBadge, SourceTag, StatusDot } from "@/components/ui/bits";
+import { Bar } from "@/components/ui/bits";
 import { ActivityMatrix, Radar } from "@/components/dashboard/charts";
 import { Triad } from "@/components/dashboard/Triad";
 
@@ -20,12 +20,12 @@ export function Dashboard() {
   const activity = hydrated ? activityRaw : {};
   const stats = useMemo(() => competencyStats(attempts), [attempts]);
   const streak = streakOf(activity);
-  const [track, setTrack] = useState<TrackId>("fintech");
-
   const totals = Object.values(stats).reduce((a, s) => ({ solved: a.solved + s.solved, total: a.total + s.total, submits: a.submits + s.submits, passes: a.passes + s.passes }), { solved: 0, total: 0, submits: 0, passes: 0 });
-  const trackProblems = PROBLEMS.filter((p) => p.tracks.includes(track));
-  const trackCompanies = COMPANIES.filter((c) => c.tracks.includes(track));
-  const trackSolved = trackProblems.filter((p) => attempts[p.id]?.status === "solved").length;
+  const quizRaw = useStore((s) => s.quiz);
+  const cardsRaw = useStore((s) => s.cards);
+  const readRaw = useStore((s) => s.read);
+  const coverage = TRACK_META.map((t) => ({ t, p: trackProgress(t.id, hydrated ? readRaw : {}, hydrated ? quizRaw : {}, attempts, hydrated ? cardsRaw : {}) }));
+  const dueAll = coverage.reduce((n, c) => n + c.p.cardDue, 0);
 
   return (
     <div className="max-w-[1200px] mx-auto p-4 space-y-4">
@@ -110,53 +110,37 @@ export function Dashboard() {
         </div>
       </section>
 
-      {/* Row 3: company tracks */}
-      <section aria-labelledby="h-tracks" className="pane">
-        <div className="pane-head h-auto py-2 flex-wrap">
-          <h2 id="h-tracks" className="text-fg font-medium mr-2">Company tracks</h2>
-          <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Tracks">
-            {TRACKS.map((t) => (
-              <button key={t.id} role="tab" aria-selected={track === t.id} onClick={() => setTrack(t.id)} className={cn("h-6 px-2 rounded border text-xs whitespace-nowrap", track === t.id ? "border-fg bg-fg text-bg" : "border-line text-muted hover:text-fg")}>
-                {t.label}
-              </button>
+      {/* Row 3: syllabus coverage by track */}
+      <section aria-labelledby="h-tracks" className="pane overflow-x-auto">
+        <div className="pane-head">
+          <h2 id="h-tracks" className="text-fg font-medium">Syllabus coverage</h2>
+          <span>learn, practise and revise by track</span>
+          <span className="ml-auto flex gap-2">
+            <Link className="btn" href="/quiz/mix-all">Mixed quiz</Link>
+            <Link className="btn" href="/revise">Review cards{dueAll ? ` · ${dueAll} due` : ""}</Link>
+          </span>
+        </div>
+        <table className="dt">
+          <thead>
+            <tr><th>Track</th><th className="text-right">Topics read</th><th>Questions correct</th><th className="text-right">Problems solved</th><th className="text-right">Cards learned</th><th className="text-right">Due</th><th /></tr>
+          </thead>
+          <tbody>
+            {coverage.map(({ t, p }) => (
+              <tr key={t.id} className="group">
+                <td className="!whitespace-normal min-w-56 py-1.5">
+                  <Link href={`/learn?track=${t.id}`} className="text-fg font-medium group-hover:underline underline-offset-2">{t.label}</Link>
+                  <div className="text-muted leading-4">{t.blurb}</div>
+                </td>
+                <td className="num text-right">{p.read}/{p.topics}</td>
+                <td className="w-52"><div className="flex items-center gap-2"><Bar value={p.quizTotal ? p.quizRight / p.quizTotal : 0} /><span className="num text-muted w-16 text-right">{p.quizRight}/{p.quizTotal}</span></div></td>
+                <td className="num text-right">{p.probTotal ? `${p.probSolved}/${p.probTotal}` : "—"}</td>
+                <td className="num text-right">{p.cardSeen}/{p.cardTotal}</td>
+                <td className={cn("num text-right", p.cardDue > 0 && "text-warn")}>{p.cardDue}</td>
+                <td className="text-right"><Link className="btn" href={`/quiz/mix-${t.id}`}>Quiz</Link></td>
+              </tr>
             ))}
-          </div>
-          <span className="ml-auto num">{trackSolved}/{trackProblems.length} solved</span>
-        </div>
-        <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr]">
-          <div className="lg:border-r border-line">
-            <div className="label px-3 pt-2.5 pb-1">Companies with a documented process</div>
-            <ul>
-              {trackCompanies.map((c) => (
-                <li key={c.id} className="px-3 py-2 border-t border-line first:border-t-0">
-                  <Link href={`/problems?company=${c.id}`} className="flex items-baseline gap-2 group">
-                    <span className="text-sm font-medium group-hover:underline underline-offset-2">{c.name}</span>
-                    <span className="text-xs text-muted truncate">{c.roles.join(", ")}</span>
-                    <span className="ml-auto text-xs text-faint num whitespace-nowrap">{c.cgpaCut ? `CGPA ≥ ${c.cgpaCut}` : "no cut-off"}</span>
-                  </Link>
-                  <div className="text-xs text-muted mt-0.5 leading-5">{c.tested.join(" · ")}</div>
-                </li>
-              ))}
-            </ul>
-            <p className="px-3 py-2 border-t border-line text-2xs text-faint leading-4">Source: BITS Hyderabad Placement Chronicles, Sem 2 AY 2025-26; Eternal from the AY 2026-27 cycle.</p>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="dt">
-              <thead><tr><th className="w-8" /><th>Problem</th><th>Type</th><th>Difficulty</th><th>Source</th></tr></thead>
-              <tbody>
-                {trackProblems.map((p) => (
-                  <tr key={p.id} className="group">
-                    <td><StatusDot status={attempts[p.id]?.status} /></td>
-                    <td className="max-w-[380px]"><Link href={`/p/${p.id}`} className="block truncate text-fg font-medium group-hover:underline underline-offset-2">{p.title}</Link></td>
-                    <td className="text-muted">{KIND_LABEL[p.kind]}</td>
-                    <td><DifficultyBadge d={p.difficulty} /></td>
-                    <td><SourceTag source={p.source} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+          </tbody>
+        </table>
       </section>
     </div>
   );

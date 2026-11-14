@@ -198,6 +198,7 @@ export function ProblemPanel({ problem, extraTabs = [], solution }: { problem: P
               </div>
             )}
           </section>
+          {problem.context.traps.length > 0 && (
           <section>
             <div className="label mb-1.5">Common traps</div>
             <ul className="space-y-1.5 text-sm">
@@ -209,6 +210,8 @@ export function ProblemPanel({ problem, extraTabs = [], solution }: { problem: P
               ))}
             </ul>
           </section>
+          )}
+          {problem.context.followUps.length > 0 && (
           <section>
             <div className="label mb-1.5">Follow-up variations</div>
             <Collapsible.Root defaultOpen>
@@ -224,6 +227,7 @@ export function ProblemPanel({ problem, extraTabs = [], solution }: { problem: P
               </Collapsible.Content>
             </Collapsible.Root>
           </section>
+          )}
         </Tabs.Content>
 
         {solution && (

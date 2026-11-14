@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { Attempt, Competency, OaResult, TriadSlot, UserProgress } from "./types";
+import type { Attempt, CardState, Competency, OaResult, TriadSlot, UserProgress } from "./types";
 import { addDays, dayKey } from "./utils";
 import { dailyFor } from "./daily";
 import { PROBLEMS } from "@/data/problems";
@@ -20,6 +20,11 @@ interface Actions {
   /** Record a graded submission. Returns true if this was the first time the problem was solved. */
   recordSubmit: (id: string, passed: boolean, sec?: number) => boolean;
   addOaResult: (r: OaResult) => void;
+  /** Record one quiz answer. Correct answers count toward daily activity. */
+  answerQuiz: (id: string, ok: boolean) => void;
+  /** Grade a flashcard: 0 again, 1 hard, 2 good, 3 easy (SM-2). */
+  gradeCard: (id: string, grade: 0 | 1 | 2 | 3) => void;
+  toggleRead: (topicId: string) => void;
   toggleTheme: () => void;
   toggleSidebar: () => void;
   setPalette: (open: boolean) => void;
@@ -35,6 +40,9 @@ const emptyProgress: UserProgress = {
   activity: {},
   dailyDone: {},
   oaResults: [],
+  quiz: {},
+  cards: {},
+  read: {},
 };
 
 export const useStore = create<State>()(
@@ -83,6 +91,20 @@ export const useStore = create<State>()(
         return firstSolve;
       },
 
+      answerQuiz: (id, ok) =>
+        set((s) => {
+          const prev = s.quiz[id];
+          const today = dayKey();
+          return {
+            quiz: { ...s.quiz, [id]: { right: (prev?.right ?? 0) + (ok ? 1 : 0), wrong: (prev?.wrong ?? 0) + (ok ? 0 : 1), last: Date.now(), ok } },
+            // Ten correct answers weigh about as much as one solved problem in the activity grid.
+            activity: ok ? { ...s.activity, [today]: (s.activity[today] ?? 0) + 0.1 } : s.activity,
+          };
+        }),
+      gradeCard: (id, grade) =>
+        set((s) => ({ cards: { ...s.cards, [id]: sm2(s.cards[id], grade) }, activity: { ...s.activity, [dayKey()]: (s.activity[dayKey()] ?? 0) + 0.05 } })),
+      toggleRead: (topicId) => set((s) => ({ read: { ...s.read, [topicId]: !s.read[topicId] } })),
+
       addOaResult: (r) => set((s) => ({ oaResults: [r, ...s.oaResults].slice(0, 50) })),
       toggleTheme: () => set((s) => ({ theme: s.theme === "dark" ? "light" : "dark" })),
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
@@ -98,6 +120,22 @@ export const useStore = create<State>()(
     },
   ),
 );
+
+/** SM-2 with four buttons. "Again" resets the interval; ease never drops below 1.3. */
+export function sm2(prev: CardState | undefined, grade: 0 | 1 | 2 | 3): CardState {
+  const c = prev ?? { ease: 2.5, interval: 0, reps: 0, due: dayKey() };
+  let { ease, interval, reps } = c;
+  if (grade === 0) {
+    reps = 0;
+    interval = 0; // due again today
+    ease = Math.max(1.3, ease - 0.2);
+  } else {
+    reps += 1;
+    ease = Math.max(1.3, ease + (grade === 1 ? -0.15 : grade === 3 ? 0.15 : 0));
+    interval = reps === 1 ? (grade === 3 ? 3 : 1) : reps === 2 ? (grade === 1 ? 3 : 6) : Math.round(interval * (grade === 1 ? 1.2 : ease));
+  }
+  return { ease, interval, reps, due: dayKey(addDays(new Date(), interval)) };
+}
 
 // ───────────────────────── Derived selectors ─────────────────────────
 

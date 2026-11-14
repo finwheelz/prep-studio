@@ -8,12 +8,15 @@ import { useStore } from "@/lib/store";
 import { PROBLEMS, KIND_LABEL } from "@/data/problems";
 import { CATEGORIES, COMPANIES, PILLARS, TRACKS, categoryById, companyById } from "@/data/taxonomy";
 import { OA_SETS } from "@/data/oa";
+import { TOPICS, TRACK_META } from "@/data/syllabus";
 import { cn } from "@/lib/utils";
 import { ICON, Kbd, StatusDot } from "@/components/ui/bits";
 
 interface Item {
   id: string;
-  group: "Go to" | "Problems" | "Tracks" | "Companies" | "Assessments" | "Actions";
+  group: "Go to" | "Topics" | "Problems" | "Tracks" | "Companies" | "Assessments" | "Actions";
+  /** Long text searched only for matches, used to show a snippet. */
+  body?: string;
   label: string;
   hint?: string;
   keywords: string;
@@ -44,6 +47,18 @@ export function CommandPalette() {
         run: go(`/problems?pillar=${p.id}`),
       })),
       { id: "go-drill", group: "Go to", label: "Daily Drill & OA Simulator", keywords: "triad streak timed assessment", run: go("/drill") },
+      { id: "go-learn", group: "Go to", label: "Learn: syllabus", keywords: "notes topics study", run: go("/learn") },
+      { id: "go-revise", group: "Go to", label: "Revise: flashcards", keywords: "spaced repetition cards", run: go("/revise") },
+      ...TRACK_META.map<Item>((t) => ({ id: `mix-${t.id}`, group: "Go to", label: `Mixed quiz: ${t.label}`, keywords: "quiz questions practice", run: go(`/quiz/mix-${t.id}`) })),
+      ...TOPICS.map<Item>((t) => ({
+        id: `topic-${t.id}`,
+        group: "Topics",
+        label: t.title,
+        hint: `${TRACK_META.find((x) => x.id === t.track)?.label} · ${t.module}`,
+        keywords: t.summary,
+        body: t.notes.toLowerCase(),
+        run: go(`/learn/${t.id}`),
+      })),
       ...PROBLEMS.map<Item>((p) => ({
         id: p.id,
         group: "Problems",
@@ -70,14 +85,18 @@ export function CommandPalette() {
 
   const results = useMemo(() => {
     const terms = q.toLowerCase().split(/\s+/).filter(Boolean);
-    if (!terms.length) return items.filter((i) => i.group !== "Companies" && !i.id.startsWith("cat-")).slice(0, 30);
+    if (!terms.length) return items.filter((i) => i.group === "Go to" && !i.id.startsWith("cat-")).slice(0, 30);
     return items
       .map((it) => {
         const label = it.label.toLowerCase();
         const hay = `${label} ${it.hint ?? ""} ${it.keywords}`.toLowerCase();
-        if (!terms.every((t) => hay.includes(t))) return null;
-        // Rank: label prefix > label contains > keyword only.
-        const score = terms.reduce((s, t) => s + (label.startsWith(t) ? 3 : label.includes(t) ? 2 : 1), 0);
+        const inMeta = terms.every((t) => hay.includes(t));
+        // Full-text fallback: every term appears somewhere in the topic's notes.
+        const inBody = !inMeta && !!it.body && terms.every((t) => hay.includes(t) || it.body!.includes(t));
+        if (!inMeta && !inBody) return null;
+        // Rank: label prefix > label contains > keyword only > notes only (by number of mentions).
+        let score = terms.reduce((s, t) => s + (label.startsWith(t) ? 30 : label.includes(t) ? 20 : hay.includes(t) ? 10 : 0), 0);
+        if (it.body) score += Math.min(9, terms.reduce((s, t) => s + (it.body!.split(t).length - 1), 0));
         return { it, score };
       })
       .filter((x): x is { it: Item; score: number } => !!x)
@@ -128,7 +147,7 @@ export function CommandPalette() {
               autoFocus
               value={q}
               onChange={(e) => setQ(e.target.value)}
-              placeholder="Search problems, topics, companies, assessments…"
+              placeholder="Search notes, topics, problems, assessments…"
               className="flex-1 bg-transparent outline-none text-sm placeholder:text-faint"
               aria-label="Search"
             />

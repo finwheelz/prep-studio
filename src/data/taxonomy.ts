@@ -48,6 +48,15 @@ export const TRACKS: Track[] = [
 ];
 
 export const CATEGORIES: Category[] = [
+  { id: "sql/basics", pillar: "data", competency: "sql", label: "Filtering & sorting" },
+  { id: "sql/aggregation", pillar: "data", competency: "sql", label: "Aggregation & HAVING" },
+  { id: "sql/subqueries", pillar: "data", competency: "sql", label: "Subqueries" },
+  { id: "sql/cte", pillar: "data", competency: "sql", label: "CTEs & recursion" },
+  { id: "sql/case-pivot", pillar: "data", competency: "sql", label: "CASE & pivots" },
+  { id: "sql/set-strings", pillar: "data", competency: "sql", label: "Set operations & strings" },
+  { id: "python/basics", pillar: "data", competency: "python_stats", label: "Core Python" },
+  { id: "python/strings", pillar: "data", competency: "python_stats", label: "Strings & collections" },
+  { id: "python/data", pillar: "data", competency: "python_stats", label: "Data wrangling in plain Python" },
   { id: "sql/joins", pillar: "data", competency: "sql", label: "Joins & anti-joins" },
   { id: "sql/window", pillar: "data", competency: "sql", label: "Window functions" },
   { id: "sql/gaps-islands", pillar: "data", competency: "sql", label: "Gaps & islands" },

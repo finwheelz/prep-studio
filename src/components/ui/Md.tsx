@@ -63,27 +63,32 @@ export const Md = memo(function Md({ source, className }: { source: string; clas
       i++;
       continue;
     }
-    if (/^- /.test(line)) {
-      const items: string[] = [];
-      while (i < lines.length && /^- /.test(lines[i])) items.push(lines[i++].slice(2));
+    if (/^- /.test(line) || /^\d+\. /.test(line)) {
+      const ordered = /^\d+\. /.test(line);
+      const start = ordered ? /^\d+\. / : /^- /;
+      // Items may carry indented "- " sub-bullets on the following lines.
+      const items: { text: string; sub: string[] }[] = [];
+      while (i < lines.length && (start.test(lines[i]) || (items.length > 0 && /^\s+- /.test(lines[i])))) {
+        if (start.test(lines[i])) items.push({ text: lines[i].replace(start, ""), sub: [] });
+        else items[items.length - 1].sub.push(lines[i].replace(/^\s+- /, ""));
+        i++;
+      }
+      const List = ordered ? "ol" : "ul";
       blocks.push(
-        <ul key={k++}>
+        <List key={k++}>
           {items.map((it, j) => (
-            <li key={j}>{inline(it, `u${k}-${j}`)}</li>
+            <li key={j}>
+              {inline(it.text, `l${k}-${j}`)}
+              {it.sub.length > 0 && (
+                <ul className="!mb-0 mt-1">
+                  {it.sub.map((sb, m) => (
+                    <li key={m}>{inline(sb, `l${k}-${j}-${m}`)}</li>
+                  ))}
+                </ul>
+              )}
+            </li>
           ))}
-        </ul>,
-      );
-      continue;
-    }
-    if (/^\d+\. /.test(line)) {
-      const items: string[] = [];
-      while (i < lines.length && /^\d+\. /.test(lines[i])) items.push(lines[i++].replace(/^\d+\. /, ""));
-      blocks.push(
-        <ol key={k++}>
-          {items.map((it, j) => (
-            <li key={j}>{inline(it, `o${k}-${j}`)}</li>
-          ))}
-        </ol>,
+        </List>,
       );
       continue;
     }

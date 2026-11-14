@@ -55,7 +55,7 @@ export function Radar({ stats }: { stats: Record<string, CompetencyStat> }) {
 }
 
 const LEVELS = ["bg-inset border border-line", "bg-accent/25", "bg-accent/50", "bg-accent/75", "bg-accent"];
-const level = (n: number) => (n <= 0 ? 0 : n === 1 ? 1 : n === 2 ? 2 : n <= 4 ? 3 : 4);
+const level = (n: number) => (n <= 0 ? 0 : n < 1.5 ? 1 : n < 3 ? 2 : n < 5 ? 3 : 4);
 
 /** GitHub-style activity grid: columns are weeks, rows are weekdays (Mon first). Sequential, one hue. */
 export function ActivityMatrix({ activity, weeks = 26 }: { activity: Record<string, number>; weeks?: number }) {
@@ -80,7 +80,7 @@ export function ActivityMatrix({ activity, weeks = 26 }: { activity: Record<stri
     }
     return { cols, months };
   }, [weeks]);
-  const total = Object.values(activity).reduce((a, b) => a + b, 0);
+  const total = Math.round(Object.values(activity).reduce((a, b) => a + b, 0));
   const active = Object.values(activity).filter((v) => v > 0).length;
 
   return (
@@ -103,14 +103,14 @@ export function ActivityMatrix({ activity, weeks = 26 }: { activity: Record<stri
             {cols.map((col, i) => (
               <div key={i} className="flex flex-col gap-[3px]">
                 {col.map((c) => {
-                  const n = activity[c.key] ?? 0;
+                  const n = Math.round((activity[c.key] ?? 0) * 10) / 10;
                   return c.future ? (
                     <span key={c.key} className="h-[10px] w-[10px]" />
                   ) : (
                     <span
                       key={c.key}
                       className={cn("h-[10px] w-[10px] rounded-[2px]", LEVELS[level(n)])}
-                      title={`${c.date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}: ${n} passing submission${n === 1 ? "" : "s"}`}
+                      title={`${c.date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}: ${n} activity point${n === 1 ? "" : "s"} (1 per solved problem, 0.1 per correct quiz answer)`}
                     />
                   );
                 })}
@@ -120,7 +120,7 @@ export function ActivityMatrix({ activity, weeks = 26 }: { activity: Record<stri
         </div>
       </div>
       <div className="flex items-center gap-3 mt-2 text-2xs text-faint">
-        <span><span className="num text-muted">{total}</span> passing {total === 1 ? "submission" : "submissions"} on <span className="num text-muted">{active}</span> {active === 1 ? "day" : "days"}</span>
+        <span><span className="num text-muted">{total}</span> activity {total === 1 ? "point" : "points"} on <span className="num text-muted">{active}</span> {active === 1 ? "day" : "days"}</span>
         <span className="ml-auto flex items-center gap-1">
           Less
           {LEVELS.map((l, i) => (
