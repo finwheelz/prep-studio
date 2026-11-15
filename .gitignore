@@ -2,3 +2,5 @@ node_modules
 .next
 public/pyodide
 next-env.d.ts
+out
+*.tsbuildinfo

@@ -11,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { Bar } from "@/components/ui/bits";
 import { ActivityMatrix, Radar } from "@/components/dashboard/charts";
 import { Triad } from "@/components/dashboard/Triad";
+import { Backup } from "@/components/dashboard/Backup";
 
 export function Dashboard() {
   const hydrated = useHydrated();
@@ -31,10 +32,11 @@ export function Dashboard() {
     <div className="max-w-[1200px] mx-auto p-4 space-y-4">
       {/* Row 1: daily target */}
       <section aria-labelledby="h-today">
-        <div className="flex items-baseline gap-3 mb-2">
+        <div className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 mb-2">
           <h1 id="h-today" className="text-xl font-semibold tracking-tight">Today</h1>
-          <span className="text-xs text-muted">{new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</span>
-          <span className="ml-auto text-xs text-muted">One SQL query, one ML concept, one case.</span>
+          {/* Static export: the build date would be baked into the HTML, so render the date on the client only. */}
+          <span className="text-xs text-muted min-w-24">{hydrated && new Date().toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long" })}</span>
+          <span className="sm:ml-auto max-sm:w-full text-xs text-muted">One SQL query, one ML concept, one case.</span>
         </div>
         <Triad />
       </section>
@@ -97,11 +99,11 @@ export function Dashboard() {
           <div className="grid grid-cols-2 border-b border-line">
             <div className="px-3 py-2 border-r border-line">
               <div className="label">Current streak</div>
-              <div className="num text-2xl leading-8">{streak.current}<span className="text-sm text-muted ml-1">days</span></div>
+              <div className="num text-2xl leading-8">{streak.current}<span className="text-sm text-muted ml-1">{streak.current === 1 ? "day" : "days"}</span></div>
             </div>
             <div className="px-3 py-2">
               <div className="label">Longest streak</div>
-              <div className="num text-2xl leading-8">{streak.best}<span className="text-sm text-muted ml-1">days</span></div>
+              <div className="num text-2xl leading-8">{streak.best}<span className="text-sm text-muted ml-1">{streak.best === 1 ? "day" : "days"}</span></div>
             </div>
           </div>
           <div className="p-3">
@@ -142,6 +144,8 @@ export function Dashboard() {
           </tbody>
         </table>
       </section>
+
+      <Backup firstVisit={hydrated && totals.submits === 0 && Object.keys(activityRaw).length === 0} />
     </div>
   );
 }

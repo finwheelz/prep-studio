@@ -79,9 +79,8 @@ export function Syllabus() {
                           <Link href={`/learn/${t.id}`} className="text-fg font-medium group-hover:underline underline-offset-2">{t.title}</Link>
                           <div className="text-muted leading-4">{t.summary}</div>
                         </td>
-                        <td className="w-44">
-                          <div className="flex items-center gap-2"><Bar value={p.quizTotal ? p.quizRight / p.quizTotal : 0} /><span className="num text-muted w-14 text-right">{p.quizRight}/{p.quizTotal}</span></div>
-                          <div className="text-2xs text-faint">questions correct</div>
+                        <td className="w-52">
+                          <div className="flex items-center gap-2" title="Questions answered correctly"><Bar value={p.quizTotal ? p.quizRight / p.quizTotal : 0} /><span className="num text-muted whitespace-nowrap">{p.quizRight}/{p.quizTotal} <span className="text-faint">correct</span></span></div>
                         </td>
                         <td className="w-28 num text-muted">{p.probTotal ? <>{p.probSolved}/{p.probTotal} <span className="text-faint">problems</span></> : <span className="text-faint">—</span>}</td>
                         <td className="w-28 num text-muted">{p.cardSeen}/{p.cardTotal} <span className="text-faint">cards</span>{p.cardDue > 0 && <span className="text-warn"> · {p.cardDue} due</span>}</td>

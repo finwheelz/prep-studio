@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useMemo } from "react";
-import { X } from "lucide-react";
+import { useMemo, useState } from "react";
+import { Search, X } from "lucide-react";
 import type { Difficulty } from "@/lib/types";
 import { PROBLEMS, KIND_LABEL } from "@/data/problems";
 import { CATEGORIES, COMPANIES, PILLARS, TRACKS, categoryById, companyById, pillarById } from "@/data/taxonomy";
@@ -41,11 +41,13 @@ export function ProblemList() {
     category: params.get("category"),
     difficulty: params.get("difficulty"),
     status: params.get("status"),
+    q: params.get("q"),
   };
   // Filters live in the URL so a filtered view can be bookmarked or opened from the palette.
+  const [query, setQuery] = useState(params.get("q") ?? "");
   const set = (key: keyof typeof f, value: string | null) => {
     const next = new URLSearchParams(params.toString());
-    if (value === null || next.get(key) === value) next.delete(key);
+    if (value === null || value === "" || (key !== "q" && next.get(key) === value)) next.delete(key);
     else next.set(key, value);
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   };
@@ -53,6 +55,10 @@ export function ProblemList() {
   const rows = useMemo(
     () =>
       PROBLEMS.filter((p) => {
+        if (f.q) {
+          const hay = `${p.title} ${categoryById(p.category)?.label ?? ""} ${KIND_LABEL[p.kind]} ${p.source.kind === "reported" ? companyById(p.source.companyId)?.name ?? "" : ""}`.toLowerCase();
+          if (!f.q.toLowerCase().split(/\s+/).every((w) => hay.includes(w))) return false;
+        }
         if (f.pillar && p.pillar !== f.pillar) return false;
         if (f.track && !p.tracks.includes(f.track as never)) return false;
         if (f.company && !(p.source.kind === "reported" && p.source.companyId === f.company)) return false;
@@ -65,7 +71,7 @@ export function ProblemList() {
         return true;
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [f.pillar, f.track, f.company, f.category, f.difficulty, f.status, attempts, hydrated],
+    [f.pillar, f.track, f.company, f.category, f.difficulty, f.status, f.q, attempts, hydrated],
   );
 
   const pillar = f.pillar ? pillarById(f.pillar) : null;
@@ -106,6 +112,20 @@ export function ProblemList() {
       )}
 
       <div className="pane p-2.5 space-y-2">
+        <label className="flex items-center gap-2 h-8 rounded border border-line bg-bg px-2 focus-within:border-line-strong">
+          <Search {...ICON} className="text-faint shrink-0" />
+          <input
+            type="search"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              set("q", e.target.value.trim() || null);
+            }}
+            placeholder="Search by title, topic, language or company…"
+            aria-label="Search problems"
+            className="flex-1 min-w-0 bg-transparent text-sm outline-none placeholder:text-faint"
+          />
+        </label>
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="label w-16">Pillar</span>
           {PILLARS.filter((p) => p.id !== "drill").map((p) => (
@@ -120,7 +140,10 @@ export function ProblemList() {
             <Pill key={s.id} active={f.status === s.id} onClick={() => set("status", s.id)}>{s.label}</Pill>
           ))}
           {anyFilter && (
-            <button className="btn-ghost h-6 ml-auto" onClick={() => router.replace(pathname)}>
+            <button className="btn-ghost h-6 ml-auto" onClick={() => {
+              setQuery("");
+              router.replace(pathname);
+            }}>
               <X {...ICON} size={12} /> Clear
             </button>
           )}

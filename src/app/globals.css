@@ -58,7 +58,7 @@
 @layer components {
   /* Containers */
   .pane { @apply bg-panel border border-line rounded-lg overflow-hidden; }
-  .pane-head { @apply flex items-center gap-2 min-h-9 px-3 border-b border-line bg-panel text-xs text-muted shrink-0; }
+  .pane-head { @apply flex flex-wrap items-center gap-x-2 gap-y-1 min-h-9 py-1 px-3 border-b border-line bg-panel text-xs text-muted shrink-0; }
   .label { @apply text-2xs uppercase tracking-wider text-faint font-medium; }
   .num { @apply font-mono tabular-nums; }
   .kbd { @apply inline-flex items-center h-4.5 min-w-[18px] justify-center px-1 rounded-sm border border-line bg-inset font-mono text-2xs text-muted; }

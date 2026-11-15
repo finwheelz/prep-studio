@@ -29,6 +29,8 @@ interface Actions {
   toggleSidebar: () => void;
   setPalette: (open: boolean) => void;
   resetAll: () => void;
+  /** Replace all progress with a backup made by exportProgress. Throws on a file that is not one. */
+  importProgress: (raw: string) => void;
 }
 
 type State = UserProgress & UiState & { hydrated: boolean } & Actions;
@@ -110,6 +112,16 @@ export const useStore = create<State>()(
       toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
       setPalette: (open) => set({ paletteOpen: open }),
       resetAll: () => set({ ...emptyProgress }),
+      importProgress: (raw) => {
+        const data = JSON.parse(raw) as { app?: string; progress?: Partial<UserProgress> };
+        if (data.app !== BACKUP_APP || !data.progress || typeof data.progress.attempts !== "object") throw new Error("Not a Prep Studio backup file");
+        const next = { ...emptyProgress };
+        for (const k of Object.keys(emptyProgress) as (keyof UserProgress)[]) {
+          const v = data.progress[k];
+          if (v != null && typeof v === typeof emptyProgress[k] && Array.isArray(v) === Array.isArray(emptyProgress[k])) (next as Record<string, unknown>)[k] = v;
+        }
+        set(next);
+      },
     }),
     {
       name: "prep-studio/v1",
@@ -120,6 +132,15 @@ export const useStore = create<State>()(
     },
   ),
 );
+
+const BACKUP_APP = "prep-studio";
+
+/** Progress as a downloadable JSON string (drafts and notes included; UI preferences left out). */
+export function exportProgress(): string {
+  const s = useStore.getState();
+  const progress = Object.fromEntries((Object.keys(emptyProgress) as (keyof UserProgress)[]).map((k) => [k, s[k]]));
+  return JSON.stringify({ app: BACKUP_APP, version: 1, exportedAt: new Date().toISOString(), progress }, null, 1);
+}
 
 /** SM-2 with four buttons. "Again" resets the interval; ease never drops below 1.3. */
 export function sm2(prev: CardState | undefined, grade: 0 | 1 | 2 | 3): CardState {

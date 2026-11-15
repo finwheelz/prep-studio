@@ -13,11 +13,11 @@ import { CommandPalette } from "./CommandPalette";
 import { dailyFor } from "@/lib/daily";
 
 const NAV = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard, match: (p: string) => p === "/" },
-  { href: "/learn", label: "Learn", icon: BookOpen, match: (p: string) => p.startsWith("/learn") || p.startsWith("/quiz") },
-  { href: "/problems", label: "Practise", icon: Code2, match: (p: string) => p.startsWith("/problems") || p.startsWith("/p/") },
-  { href: "/revise", label: "Revise", icon: Layers, match: (p: string) => p.startsWith("/revise") },
-  { href: "/drill", label: "Daily Drill & OA", icon: Timer, match: (p: string) => p.startsWith("/drill") },
+  { href: "/", label: "Dashboard", short: "Home", icon: LayoutDashboard, match: (p: string) => p === "/" },
+  { href: "/learn", label: "Learn", short: "Learn", icon: BookOpen, match: (p: string) => p.startsWith("/learn") || p.startsWith("/quiz") },
+  { href: "/problems", label: "Practise", short: "Practise", icon: Code2, match: (p: string) => p.startsWith("/problems") || p.startsWith("/p/") },
+  { href: "/revise", label: "Revise", short: "Revise", icon: Layers, match: (p: string) => p.startsWith("/revise") },
+  { href: "/drill", label: "Daily Drill & OA", short: "Drill", icon: Timer, match: (p: string) => p.startsWith("/drill") },
 ] as const;
 
 function ThemeSync() {
@@ -58,6 +58,30 @@ function NavLinks({ collapsed }: { collapsed: boolean }) {
           </Tip>
         ) : (
           link
+        );
+      })}
+    </nav>
+  );
+}
+
+/** Phones get a bottom tab bar in place of the sidebar. */
+function MobileNav() {
+  const pathname = usePathname();
+  return (
+    <nav className="md:hidden shrink-0 grid grid-cols-5 border-t border-line bg-panel pb-[env(safe-area-inset-bottom)]" aria-label="Primary">
+      {NAV.map((n) => {
+        const active = n.match(pathname);
+        const Icon = n.icon;
+        return (
+          <Link
+            key={n.href}
+            href={n.href}
+            aria-current={active ? "page" : undefined}
+            className={cn("flex flex-col items-center justify-center gap-0.5 h-13 text-2xs transition-colors", active ? "text-fg" : "text-faint hover:text-fg")}
+          >
+            <Icon {...ICON} size={18} />
+            {n.short}
+          </Link>
         );
       })}
     </nav>
@@ -159,9 +183,6 @@ export function Shell({ children }: { children: ReactNode }) {
                 </span>
               </button>
               <div className="ml-auto flex items-center gap-1">
-                <Link href="/drill" className="btn-ghost md:hidden" aria-label="Daily drill">
-                  <Timer {...ICON} size={15} />
-                </Link>
                 <Tip label={theme === "dark" ? "Light theme" : "Dark theme"}>
                   <button className="btn-ghost w-7 px-0" onClick={toggleTheme} aria-label="Toggle theme">
                     {hydrated && theme === "light" ? <Moon {...ICON} size={15} /> : <Sun {...ICON} size={15} />}
@@ -170,6 +191,7 @@ export function Shell({ children }: { children: ReactNode }) {
               </div>
             </header>
             <main className="flex-1 min-h-0 overflow-auto">{children}</main>
+            <MobileNav />
           </div>
         </div>
       )}

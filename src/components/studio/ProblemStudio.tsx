@@ -227,8 +227,8 @@ export function ProblemStudio({ problem, onSolved }: { problem: CodeProblem; onS
   const right = (
     <div className="h-full flex flex-col bg-panel">
       {/* Toolbar */}
-      <div className="h-10 shrink-0 flex items-center gap-1.5 px-2 border-b border-line">
-        <span className="inline-flex items-center h-6 px-2 rounded border border-line bg-inset text-xs font-mono text-fg whitespace-nowrap">{LANG_LABEL[problem.kind]}</span>
+      <div className="h-10 shrink-0 flex items-center gap-1.5 px-2 border-b border-line overflow-x-auto">
+        <span className="inline-flex items-center h-6 px-2 rounded border border-line bg-inset text-xs font-mono text-fg whitespace-nowrap max-[420px]:hidden">{LANG_LABEL[problem.kind]}</span>
         <Tip label={`Target ${problem.targetMin} min`}>
           <span className={cn("inline-flex items-center gap-1.5 h-6 px-2 text-xs num", over ? "text-warn" : "text-muted")} aria-live="off">
             <Timer {...ICON} size={13} />

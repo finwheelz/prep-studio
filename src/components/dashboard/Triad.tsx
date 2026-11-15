@@ -20,6 +20,13 @@ export function Triad() {
   const done = useStore((s) => s.dailyDone[today]);
   const attempts = useStore((s) => s.attempts);
   const daily = dailyFor(today);
+  // The static HTML is built on a different day than it is viewed, so the triad is picked on the client.
+  if (!hydrated)
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-3" aria-busy="true">
+        {[0, 1, 2].map((i) => <div key={i} className="pane h-[142px]" />)}
+      </div>
+    );
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
       {(Object.keys(daily.slots) as TriadSlot[]).map((slot) => {

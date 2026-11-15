@@ -20,6 +20,9 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+      - run: npm run typecheck
+      - name: Verify every SQL reference solution runs
+        run: npx tsx scripts/verify-sql.mts --quiet
       - run: npm run build
         env:
           STATIC_EXPORT: "1"
