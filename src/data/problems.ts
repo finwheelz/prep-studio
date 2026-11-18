@@ -5,8 +5,9 @@ import { PY_MORE } from "./problems-py-more";
 import { CONCEPT_PROBLEMS } from "./problems-concept";
 import { CASE_PROBLEMS } from "./problems-case";
 import { P1_PROBLEMS } from "./problems-p1";
+import { P1_CORE_PROBLEMS } from "./problems-p1-core";
 
-export const PROBLEMS: Problem[] = [...CODE_PROBLEMS, ...SQL_MORE, ...PY_MORE, ...CONCEPT_PROBLEMS, ...CASE_PROBLEMS, ...P1_PROBLEMS];
+export const PROBLEMS: Problem[] = [...CODE_PROBLEMS, ...SQL_MORE, ...PY_MORE, ...CONCEPT_PROBLEMS, ...CASE_PROBLEMS, ...P1_PROBLEMS, ...P1_CORE_PROBLEMS];
 
 export const problemById = (id: string) => PROBLEMS.find((p) => p.id === id);
 export const problemsByPillar = (pillar: string) => PROBLEMS.filter((p) => p.pillar === pillar);

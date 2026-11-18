@@ -115,15 +115,20 @@ export function ProblemStudio({ problem, onSolved }: { problem: CodeProblem; onS
   const clearDraft = useStore((s) => s.clearDraft);
   const recordSubmit = useStore((s) => s.recordSubmit);
 
-  const [code, setCode] = useState(problem.starter);
+  const [code, setCodeState] = useState(problem.starter);
   const [tab, setTab] = useState("tests");
   const [busy, setBusy] = useState<null | "run" | "submit">(null);
   const [output, setOutput] = useState<RunOutput | null>(null);
   const [results, setResults] = useState<TestResult[] | null>(null);
   const [solvedNow, setSolvedNow] = useState(false);
   const { sec, reset: resetClock } = useStopwatch(!solvedNow);
+  // Run and Submit read the ref, so it is updated the moment the code changes rather than on the
+  // next render; otherwise a submit fired right after an edit (Ctrl+Enter) could test the old code.
   const codeRef = useRef(code);
-  codeRef.current = code;
+  const setCode = useCallback((v: string) => {
+    codeRef.current = v;
+    setCodeState(v);
+  }, []);
   const busyRef = useRef(busy);
   busyRef.current = busy;
 

@@ -13,6 +13,7 @@ import "./product";
 import "./p1-pipelines";
 import "./p2-arrangements";
 import "./p2-arithmetic";
+import "./p1-core-python";
 import "./p3-ttests";
 import type { TrackKey } from "@/lib/types";
 import { CARDS, QUIZ, TOPICS } from "./build";

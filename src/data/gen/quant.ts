@@ -22,9 +22,9 @@ export interface GenQ {
   py: string;
 }
 
-type Rng = () => number;
-type Made = Pick<GenQ, "prompt" | "answer" | "explain" | "py"> & { tol?: number; options?: string[] };
-interface Tpl {
+export type Rng = () => number;
+export type Made = Pick<GenQ, "prompt" | "answer" | "explain" | "py"> & { tol?: number; options?: string[] };
+export interface Tpl {
   key: string;
   d: 1 | 2 | 3;
   secs: number;
@@ -42,12 +42,12 @@ function mulberry32(seed: number): Rng {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
 }
-const pick = <T,>(r: Rng, a: readonly T[]): T => a[Math.floor(r() * a.length)];
-const int = (r: Rng, lo: number, hi: number) => lo + Math.floor(r() * (hi - lo + 1));
+export const pick = <T,>(r: Rng, a: readonly T[]): T => a[Math.floor(r() * a.length)];
+export const int = (r: Rng, lo: number, hi: number) => lo + Math.floor(r() * (hi - lo + 1));
 const r2 = (x: number) => Math.round(x * 100) / 100;
 const isInt = (x: number) => Math.abs(x - Math.round(x)) < 1e-9;
 const is2dp = (x: number) => isInt(x * 100);
-const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : Math.abs(a));
+export const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : Math.abs(a));
 const lcm = (a: number, b: number) => (a / gcd(a, b)) * b;
 const fmt = (x: number) => (isInt(x) ? String(Math.round(x)) : String(r2(x)));
 const money = (x: number) => `₹${x.toLocaleString("en-IN")}`;
@@ -56,7 +56,7 @@ const sg = (x: number) => (x < 0 ? `(−${-x})` : String(x));
 const DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-function build(topic: string, code: string, seed: number, tpls: Tpl[], per = 3): GenQ[] {
+export function build(topic: string, code: string, seed: number, tpls: Tpl[], per = 3): GenQ[] {
   const r = mulberry32(seed);
   const out: GenQ[] = [];
   for (const t of tpls) {
