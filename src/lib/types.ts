@@ -423,7 +423,25 @@ export interface Topic {
   resources?: Resource[];
   /** Problem categories whose coding / case problems belong to this topic. */
   categories?: string[];
+  /** Interview questions with a model answer and the points an interviewer listens for. */
+  interview?: InterviewQ[];
 }
+
+export interface InterviewQ {
+  q: string;
+  /** Markdown-lite model answer. */
+  answer: string;
+  /** What a strong answer must contain; the learner grades themselves against it. */
+  rubric: string[];
+}
+
+/**
+ * How a verification script recomputes an item's answer.
+ * - `py`: Python run in Pyodide (same runtime as the site); it must assign `answer`
+ *   (a number, or the option index for MCQ). Listed packages are loaded first.
+ * - `gen`: produced by a generator in src/data/gen whose own solver re-derives the answer.
+ */
+export type ItemCheck = { py: string; packages?: string[] } | { gen: string };
 
 export interface QuizItem {
   id: string;
@@ -446,6 +464,8 @@ export interface QuizItem {
   src?: string;
   /** True for content authored with an explicit, stable id (see build.ts `Item`). */
   fixedId?: boolean;
+  /** Present when a script can recompute the answer; scripts/verify-items.mts uses it to fill verified.json. */
+  check?: ItemCheck;
 }
 
 export interface Card {

@@ -32,6 +32,8 @@ jobs:
         run: npm run typecheck
       - name: Content integrity and verification manifest
         run: npx tsx scripts/stats.mts
+      - name: Every checked quiz answer is recomputed; verified.json must match exactly
+        run: npx tsx scripts/verify-items.mts --check
       - name: Every Python solution passes its tests in Pyodide
         run: npx tsx scripts/verify-py.mts --quiet
       - name: Every SQL reference solution runs

@@ -12,6 +12,7 @@ import { problemsFor, topicProgress } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 import { Bar, DifficultyBadge, ICON, SourceTag, StatusDot } from "@/components/ui/bits";
 import { Md } from "@/components/ui/Md";
+import { InterviewQs } from "@/components/ui/InterviewQs";
 
 export function TopicPage({ id }: { id: string }) {
   const t = topicById(id)!;
@@ -70,6 +71,7 @@ export function TopicPage({ id }: { id: string }) {
 
         <Tabs.Content value="learn" className="pt-4 outline-none">
           <Md source={t.notes} className="[&_p]:leading-7 [&_li]:leading-7" />
+          {t.interview?.length ? <InterviewQs items={t.interview} /> : null}
           <div className="flex flex-wrap items-center gap-2 mt-5 pt-3 border-t border-line">
             <button className={cn("btn", isRead && "border-accent text-accent")} onClick={() => s.toggleRead(t.id)}>
               <Check {...ICON} /> {isRead ? "Marked as read" : "Mark as read"}

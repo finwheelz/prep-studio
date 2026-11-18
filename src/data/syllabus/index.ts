@@ -9,6 +9,10 @@ import "./aptitude-reasoning";
 import "./analyst";
 import "./ml";
 import "./product";
+// Rebuild concepts (fixed ids, verified answers).
+import "./p1-pipelines";
+import "./p2-arrangements";
+import "./p3-ttests";
 import type { TrackKey } from "@/lib/types";
 import { CARDS, QUIZ, TOPICS } from "./build";
 

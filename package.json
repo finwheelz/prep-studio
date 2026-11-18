@@ -9,7 +9,8 @@
     "typecheck": "tsc --noEmit",
     "postinstall": "node scripts/copy-pyodide.mjs --core",
     "wheels": "node scripts/copy-pyodide.mjs",
-    "verify": "tsc --noEmit && tsx scripts/stats.mts && tsx scripts/verify-py.mts --quiet && tsx scripts/verify-sql.mts --quiet"
+    "verify": "tsc --noEmit && tsx scripts/stats.mts && tsx scripts/verify-items.mts --check && tsx scripts/verify-py.mts --quiet && tsx scripts/verify-sql.mts --quiet",
+    "verify:items": "tsx scripts/verify-items.mts"
   },
   "dependencies": {
     "@codemirror/lang-python": "^6.2.1",

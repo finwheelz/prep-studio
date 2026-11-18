@@ -1,4 +1,4 @@
-import type { Card, QuizItem, Resource, Topic, TrackKey } from "@/lib/types";
+import type { Card, InterviewQ, QuizItem, Resource, Topic, TrackKey } from "@/lib/types";
 
 /**
  * Authoring helpers. Content files call these in order; ids are derived from the topic id and
@@ -12,7 +12,7 @@ const qn: Record<string, number> = {};
 const cn: Record<string, number> = {};
 let current = "";
 
-export function T(id: string, track: TrackKey, module: string, title: string, summary: string, notes: string, extra: { resources?: Resource[]; categories?: string[] } = {}) {
+export function T(id: string, track: TrackKey, module: string, title: string, summary: string, notes: string, extra: { resources?: Resource[]; categories?: string[]; interview?: InterviewQ[] } = {}) {
   TOPICS.push({ id, track, module, title, summary, notes: notes.trim(), ...extra });
   current = id;
 }

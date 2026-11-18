@@ -66,6 +66,7 @@ export const CATEGORIES: Category[] = [
   { id: "python/pandas", pillar: "data", competency: "python_stats", label: "Pandas" },
   { id: "python/metrics", pillar: "data", competency: "python_stats", label: "Metrics from scratch" },
   { id: "ml/metrics", pillar: "ml", competency: "ml_llm", label: "Metric trade-offs" },
+  { id: "ml/pipelines", pillar: "ml", competency: "ml_llm", label: "Pipelines & leakage" },
   { id: "ml/regularization", pillar: "ml", competency: "ml_llm", label: "Regularisation" },
   { id: "ml/optimization", pillar: "ml", competency: "ml_llm", label: "Optimisation" },
   { id: "ml/credit", pillar: "ml", competency: "ml_llm", label: "Credit scorecards" },
