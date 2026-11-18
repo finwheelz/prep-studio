@@ -27,7 +27,7 @@ SQL, Product and Consulting stay on the site exactly as they are; no new content
 | Batch | Dates | Content | Concepts |
 |---|---|---|---|
 | Pilot | done Nov 19 | P1 Pipelines + leakage · P2 arrangements · P3 two-sample + paired t | 5 |
-| B1 | Nov 20–23 | P2 arithmetic, clocks and calendars, number systems | 12 |
+| B1 | done Nov 19 | P2 arithmetic, clocks and calendars, number systems | 12 |
 | B2 | Nov 24–27 | P1 core Python · P2 P&C | 12 |
 | B3 | Nov 28–Dec 1 | P1 DSA | 12 |
 | B4 | Dec 2–5 | P2 algebra, geometry · LR series, coding-decoding, analogy | 12 |
