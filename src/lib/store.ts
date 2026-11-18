@@ -2,7 +2,7 @@
 
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { Attempt, CardState, Competency, OaResult, TriadSlot, UserProgress } from "./types";
+import type { AnswerMeta, Attempt, CardState, Competency, OaResult, RepeatState, TriadSlot, UserProgress } from "./types";
 import { addDays, dayKey } from "./utils";
 import { dailyFor } from "./daily";
 import { PROBLEMS } from "@/data/problems";
@@ -21,7 +21,7 @@ interface Actions {
   recordSubmit: (id: string, passed: boolean, sec?: number) => boolean;
   addOaResult: (r: OaResult) => void;
   /** Record one quiz answer. Correct answers count toward daily activity. */
-  answerQuiz: (id: string, ok: boolean) => void;
+  answerQuiz: (id: string, ok: boolean, meta?: AnswerMeta) => void;
   /** Grade a flashcard: 0 again, 1 hard, 2 good, 3 easy (SM-2). */
   gradeCard: (id: string, grade: 0 | 1 | 2 | 3) => void;
   toggleRead: (topicId: string) => void;
@@ -45,6 +45,8 @@ const emptyProgress: UserProgress = {
   quiz: {},
   cards: {},
   read: {},
+  errors: [],
+  repeats: {},
 };
 
 export const useStore = create<State>()(
@@ -93,15 +95,22 @@ export const useStore = create<State>()(
         return firstSolve;
       },
 
-      answerQuiz: (id, ok) =>
+      answerQuiz: (id, ok, meta = {}) =>
         set((s) => {
           const prev = s.quiz[id];
           const today = dayKey();
-          return {
-            quiz: { ...s.quiz, [id]: { right: (prev?.right ?? 0) + (ok ? 1 : 0), wrong: (prev?.wrong ?? 0) + (ok ? 0 : 1), last: Date.now(), ok } },
+          const secs = Math.max(0, Math.round(meta.secs ?? 0));
+          const patch: Partial<State> = {
+            quiz: { ...s.quiz, [id]: { right: (prev?.right ?? 0) + (ok ? 1 : 0), wrong: (prev?.wrong ?? 0) + (ok ? 0 : 1), last: Date.now(), ok, secs: (prev?.secs ?? 0) + secs } },
             // Ten correct answers weigh about as much as one solved problem in the activity grid.
             activity: ok ? { ...s.activity, [today]: (s.activity[today] ?? 0) + 0.1 } : s.activity,
+            repeats: nextRepeat(s.repeats, id, ok, today),
           };
+          if (!ok) {
+            const e = { item: id, topic: meta.topic ?? "", at: Date.now(), given: meta.given ?? "", secs, from: meta.from ?? "quiz", ...(meta.timeout ? { timeout: true } : {}) } as const;
+            patch.errors = [e, ...(s.errors ?? [])].slice(0, 3000);
+          }
+          return patch;
         }),
       gradeCard: (id, grade) =>
         set((s) => ({ cards: { ...s.cards, [id]: sm2(s.cards[id], grade) }, activity: { ...s.activity, [dayKey()]: (s.activity[dayKey()] ?? 0) + 0.05 } })),
@@ -140,6 +149,28 @@ export function exportProgress(): string {
   const s = useStore.getState();
   const progress = Object.fromEntries((Object.keys(emptyProgress) as (keyof UserProgress)[]).map((k) => [k, s[k]]));
   return JSON.stringify({ app: BACKUP_APP, version: 1, exportedAt: new Date().toISOString(), progress }, null, 1);
+}
+
+const REPEAT_GAPS = [1, 3, 7] as const;
+const plusDays = (day: string, n: number) => dayKey(addDays(new Date(`${day}T00:00:00`), n));
+
+/**
+ * Repeats after 1, 3 and 7 days, counted from the miss. A miss (on any attempt) restarts the cycle.
+ * A correct answer advances the cycle only when the item is due; after the 7-day repeat it leaves the queue.
+ */
+export function nextRepeat(all: Record<string, RepeatState> | undefined, id: string, ok: boolean, today: string): Record<string, RepeatState> {
+  const cur = all ?? {};
+  const r = cur[id];
+  if (!ok) return { ...cur, [id]: { missed: today, step: 0, due: plusDays(today, REPEAT_GAPS[0]) } };
+  if (!r || r.due > today) return cur;
+  if (r.step === 2) {
+    const { [id]: _, ...rest } = cur;
+    return rest;
+  }
+  const step = (r.step + 1) as 1 | 2;
+  // If the repeat was done late, the next one is still at least a day away.
+  const due = [plusDays(r.missed, REPEAT_GAPS[step]), plusDays(today, 1)].sort().pop()!;
+  return { ...cur, [id]: { ...r, step, due } };
 }
 
 /** SM-2 with four buttons. "Again" resets the interval; ease never drops below 1.3. */

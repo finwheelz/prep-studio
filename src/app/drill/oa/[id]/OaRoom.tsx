@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Flag, Loader2, Maximize, X } from "lucide-react";
 import type { CodeProblem, OaItem, OaResult } from "@/lib/types";
+import { QUIZ } from "@/data/syllabus";
 import { oaSetById } from "@/data/oa";
 import { problemById } from "@/data/problems";
 import { datasetById } from "@/data/datasets";
@@ -18,7 +19,8 @@ import { SchemaViewer } from "@/components/studio/ProblemPanel";
 
 const Editor = dynamic(() => import("@/components/studio/Editor"), { ssr: false });
 
-type Q = { kind: "item"; item: OaItem; order: number[] } | { kind: "code"; problem: CodeProblem };
+type Q = ({ kind: "item"; item: OaItem; order: number[] } | { kind: "code"; problem: CodeProblem }) & { sec: number };
+const QUIZ_IDS = new Map(QUIZ.map((q) => [q.id, q.topic]));
 type Phase = "lobby" | "live" | "grading" | "review";
 
 function gradeItem(it: OaItem, v: string | number | undefined): boolean {
@@ -32,6 +34,12 @@ export function OaRoom({ setId }: { setId: string }) {
   const set = oaSetById(setId)!;
   const addOaResult = useStore((s) => s.addOaResult);
   const recordSubmit = useStore((s) => s.recordSubmit);
+  const answerQuiz = useStore((s) => s.answerQuiz);
+  const sections = set.sections;
+  const [sec, setSec] = useState(0);
+  const [secLeft, setSecLeft] = useState(sections?.[0]?.minutes ? sections[0].minutes * 60 : 0);
+  const [secUsed, setSecUsed] = useState<number[]>([]);
+  const [bySection, setBySection] = useState<NonNullable<OaResult["bySection"]>>([]);
   const [phase, setPhase] = useState<Phase>("lobby");
   const [seed, setSeed] = useState(1);
   const [cur, setCur] = useState(0);
@@ -43,16 +51,25 @@ export function OaRoom({ setId }: { setId: string }) {
   const [marks, setMarks] = useState<boolean[]>([]);
   const rootRef = useRef<HTMLDivElement>(null);
 
-  // Question and option order is reshuffled on every attempt.
+  // Question and option order is reshuffled on every attempt. In a sectional mock, questions are grouped by section.
   const qs = useMemo<Q[]>(() => {
+    const secOf = (topic: string) => {
+      if (!sections) return 0;
+      const k = sections.findIndex((x) => x.topics !== "coding" && x.topics.includes(topic));
+      return k < 0 ? sections.length - 1 : k;
+    };
+    const codingSec = sections ? Math.max(0, sections.findIndex((x) => x.topics === "coding")) : 0;
     const items = shuffled(set.items, seed).map<Q>((item, i) => ({
       kind: "item",
       item,
       order: item.options ? shuffled(item.options.map((_, k) => k), seed + i + 1) : [],
+      sec: secOf(item.topic),
     }));
-    const coding = set.codingIds.map<Q>((id) => ({ kind: "code", problem: problemById(id) as CodeProblem }));
-    return [...items, ...coding];
-  }, [set, seed]);
+    const coding = set.codingIds.map<Q>((id) => ({ kind: "code", problem: problemById(id) as CodeProblem, sec: sections ? (codingSec < 0 ? sections.length - 1 : codingSec) : 0 }));
+    return [...items, ...coding].sort((a, b) => a.sec - b.sec);
+  }, [set, seed, sections]);
+  const inSec = (i: number) => !sections || qs[i]?.sec === sec;
+  const secIdx = qs.map((_, i) => i).filter(inSec);
   const qid = (q: Q) => (q.kind === "item" ? q.item.id : q.problem.id);
   const answered = (q: Q) => (q.kind === "item" ? ans[q.item.id] !== undefined && ans[q.item.id] !== "" : (code[q.problem.id] ?? "") !== "" && code[q.problem.id] !== q.problem.starter);
 
@@ -63,6 +80,10 @@ export function OaRoom({ setId }: { setId: string }) {
     setFlags(new Set());
     setCur(0);
     setLeft(set.minutes * 60);
+    setSec(0);
+    setSecLeft(sections ? sections[0].minutes * 60 : 0);
+    setSecUsed([]);
+    advanced.current = -1;
     setBlur(0);
     setPhase("live");
     if (set.codingIds.some((id) => problemById(id)?.kind === "sql")) warmSql();
@@ -77,7 +98,17 @@ export function OaRoom({ setId }: { setId: string }) {
     setPhase("grading");
     const out: boolean[] = [];
     for (const q of qs) {
-      if (q.kind === "item") out.push(gradeItem(q.item, ans[q.item.id]));
+      if (q.kind === "item") {
+        const ok = gradeItem(q.item, ans[q.item.id]);
+        out.push(ok);
+        // Items drawn from the quiz bank feed the error log and the 1/3/7-day repeats.
+        const topic = QUIZ_IDS.get(q.item.id);
+        if (topic) {
+          const v = ans[q.item.id];
+          const given = v === undefined || v === "" ? "" : q.item.options ? q.item.options[Number(v)] ?? String(v) : String(v);
+          answerQuiz(q.item.id, ok, { topic, given, from: "oa", secs: 0 });
+        }
+      }
       else {
         const src = code[q.problem.id] ?? q.problem.starter;
         const res = q.problem.kind === "sql" ? await testSql(q.problem, src) : await testPython(q.problem, src);
@@ -93,20 +124,60 @@ export function OaRoom({ setId }: { setId: string }) {
       t.total++;
       if (out[i]) t.right++;
     });
+    const secs = sections
+      ? sections.map((x, k) => {
+          const idx = qs.map((_, i) => i).filter((i) => qs[i].sec === k);
+          const right = idx.filter((i) => out[i]).length;
+          return { title: x.title, right, total: idx.length, cutoffPct: x.cutoffPct, cleared: idx.length > 0 && (right / idx.length) * 100 >= x.cutoffPct };
+        })
+      : undefined;
+    setBySection(secs ?? []);
     setMarks(out);
-    addOaResult({ setId: set.id, at: Date.now(), score: out.filter(Boolean).length, total: out.length, secUsed: set.minutes * 60 - left, byTopic });
+    const used = sections ? sectionTimeUsed() : set.minutes * 60 - left;
+    addOaResult({ setId: set.id, at: Date.now(), score: out.filter(Boolean).length, total: out.length, secUsed: used, byTopic, ...(secs ? { bySection: secs } : {}) });
     if (document.fullscreenElement) await document.exitFullscreen().catch(() => {});
     setPhase("review");
-  }, [qs, ans, code, set, left, addOaResult, recordSubmit]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [qs, ans, code, set, left, addOaResult, recordSubmit, answerQuiz, sections, secUsed, secLeft, sec]);
+
+  /** Seconds used per section so far, including the running one. */
+  function sectionTimeUsed() {
+    if (!sections) return 0;
+    const done = secUsed.reduce((a, b) => a + b, 0);
+    return done + (sections[sec] ? sections[sec].minutes * 60 - secLeft : 0);
+  }
+  /** Close the current section (it locks) and open the next, or finish after the last. */
+  const advanced = useRef(-1);
+  const nextSection = useCallback(() => {
+    if (!sections || advanced.current === sec) return; // the clock and the button can both fire
+    advanced.current = sec;
+    setSecUsed((u) => [...u, sections[sec].minutes * 60 - secLeft]);
+    if (sec + 1 >= sections.length) {
+      finishRef.current();
+      return;
+    }
+    const n = sec + 1;
+    setSec(n);
+    setSecLeft(sections[n].minutes * 60);
+    setCur(Math.max(0, qs.findIndex((x) => x.sec === n)));
+  }, [sections, sec, secLeft, qs]);
+  const nextSectionRef = useRef(nextSection);
+  nextSectionRef.current = nextSection;
 
   // Countdown; auto-submit at zero.
   const finishRef = useRef(finish);
   finishRef.current = finish;
   useEffect(() => {
-    if (phase !== "live") return;
+    if (phase !== "live" || sections) return;
     const t = setInterval(() => setLeft((s) => (s <= 1 ? (clearInterval(t), finishRef.current(), 0) : s - 1)), 1000);
     return () => clearInterval(t);
-  }, [phase]);
+  }, [phase, sections]);
+  // Sectional mock: each section has its own clock; at zero it locks and the next one opens.
+  useEffect(() => {
+    if (phase !== "live" || !sections) return;
+    const t = setInterval(() => setSecLeft((s) => (s <= 1 ? (setTimeout(() => nextSectionRef.current(), 0), 0) : s - 1)), 1000);
+    return () => clearInterval(t);
+  }, [phase, sections, sec]);
   // Count how often the candidate leaves the tab, as a proctored OA would.
   useEffect(() => {
     if (phase !== "live") return;
@@ -120,12 +191,14 @@ export function OaRoom({ setId }: { setId: string }) {
     const on = (e: KeyboardEvent) => {
       const el = e.target as HTMLElement;
       if (el.closest("input, textarea, .cm-editor")) return;
-      if (e.key === "ArrowRight") setCur((c) => Math.min(qs.length - 1, c + 1));
-      if (e.key === "ArrowLeft") setCur((c) => Math.max(0, c - 1));
+      const lo = secIdx[0] ?? 0;
+      const hi = secIdx[secIdx.length - 1] ?? qs.length - 1;
+      if (e.key === "ArrowRight") setCur((c) => Math.min(hi, c + 1));
+      if (e.key === "ArrowLeft") setCur((c) => Math.max(lo, c - 1));
     };
     window.addEventListener("keydown", on);
     return () => window.removeEventListener("keydown", on);
-  }, [phase, qs.length]);
+  }, [phase, qs.length, secIdx]);
 
   const q = qs[cur];
   const nAnswered = qs.filter(answered).length;
@@ -140,12 +213,16 @@ export function OaRoom({ setId }: { setId: string }) {
             <h1 className="text-lg font-semibold tracking-tight">{set.title}</h1>
             <p className="text-sm text-muted">{set.mirrors}.</p>
             <dl className="grid grid-cols-3 pane text-xs">
-              <div className="p-2.5 border-r border-line"><dt className="label">Time</dt><dd className="num text-lg">{set.minutes} min</dd></div>
+              <div className="p-2.5 border-r border-line"><dt className="label">Time</dt><dd className="num text-lg">{sections ? sections.reduce((a, x) => a + x.minutes, 0) : set.minutes} min</dd></div>
               <div className="p-2.5 border-r border-line"><dt className="label">Questions</dt><dd className="num text-lg">{set.items.length}</dd></div>
               <div className="p-2.5"><dt className="label">Coding</dt><dd className="num text-lg">{set.codingIds.length}</dd></div>
             </dl>
             <ul className="text-sm space-y-1 text-muted list-disc pl-5">
-              <li>Opens full screen. One countdown for the whole paper; it submits itself at zero.</li>
+              {sections ? (
+                <li>Opens full screen. {sections.length} sections, each with its own clock and cutoff: {sections.map((x) => `${x.title} ${x.minutes} min, ${x.cutoffPct}%`).join("; ")}. A finished or timed-out section locks. You clear the mock only if you clear every section.</li>
+              ) : (
+                <li>Opens full screen. One countdown for the whole paper; it submits itself at zero.</li>
+              )}
               <li>Questions and options are shuffled on every attempt.</li>
               <li>No feedback until you submit. Coding answers are run against hidden tests at the end.</li>
               <li>Leaving the tab is counted and shown in your result.</li>
@@ -178,10 +255,29 @@ export function OaRoom({ setId }: { setId: string }) {
               <div className="pane-head">Result · {set.title}</div>
               <div className="grid grid-cols-3">
                 <div className="p-3 border-r border-line"><div className="label">Score</div><div className="num text-2xl">{score}<span className="text-muted text-base">/{qs.length}</span></div></div>
-                <div className="p-3 border-r border-line"><div className="label">Time used</div><div className="num text-2xl">{fmtClock(set.minutes * 60 - left)}</div></div>
+                <div className="p-3 border-r border-line"><div className="label">Time used</div><div className="num text-2xl">{fmtClock(sections ? secUsed.reduce((a, b) => a + b, 0) : set.minutes * 60 - left)}</div></div>
                 <div className="p-3"><div className="label">Left the tab</div><div className={cn("num text-2xl", blur > 0 && "text-warn")}>{blur}×</div></div>
               </div>
             </div>
+            {bySection.length > 0 && (
+              <div className="pane">
+                <div className="pane-head">Sections<span className={cn("ml-auto", bySection.every((x) => x.cleared) ? "text-accent" : "text-danger")}>{bySection.every((x) => x.cleared) ? "Cleared every cutoff" : "Did not clear every cutoff"}</span></div>
+                <table className="dt">
+                  <thead><tr><th>Section</th><th className="text-right">Right</th><th className="text-right">Score</th><th className="text-right">Cutoff</th><th className="text-right">Result</th></tr></thead>
+                  <tbody>
+                    {bySection.map((x) => (
+                      <tr key={x.title}>
+                        <td>{x.title}</td>
+                        <td className="num text-right">{x.right}/{x.total}</td>
+                        <td className="num text-right">{x.total ? Math.round((x.right / x.total) * 100) : 0}%</td>
+                        <td className="num text-right">{x.cutoffPct}%</td>
+                        <td className={cn("text-right", x.cleared ? "text-accent" : "text-danger")}>{x.cleared ? "cleared" : "below cutoff"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <div className="pane">
               <div className="pane-head">Accuracy by topic</div>
               <table className="dt">
@@ -236,20 +332,26 @@ export function OaRoom({ setId }: { setId: string }) {
   }
 
   // ───────── Live ─────────
-  const low = left <= 120;
+  const clock = sections ? secLeft : left;
+  const low = clock <= 120;
   return (
     <div ref={rootRef} className="h-full bg-bg flex flex-col">
       <header className="h-11 shrink-0 border-b border-line bg-panel flex items-center gap-3 px-3">
         <span className="text-sm font-medium truncate">{set.title}</span>
+        {sections && <span className="text-xs whitespace-nowrap">Section {sec + 1}/{sections.length}: {sections[sec].title} · cutoff {sections[sec].cutoffPct}%</span>}
         <span className="text-xs text-muted num whitespace-nowrap">{nAnswered}/{qs.length} answered</span>
-        <span className={cn("ml-auto num text-base tabular-nums px-2 h-7 inline-flex items-center rounded border", low ? "border-danger/50 text-danger" : "border-line text-fg")} role="timer" aria-label="Time remaining">{fmtClock(left)}</span>
-        <button className="btn-accent" onClick={() => { if (window.confirm(`Submit now? ${qs.length - nAnswered} unanswered.`)) finish(); }}>Submit</button>
+        <span className={cn("ml-auto num text-base tabular-nums px-2 h-7 inline-flex items-center rounded border", low ? "border-danger/50 text-danger" : "border-line text-fg")} role="timer" aria-label="Time remaining">{fmtClock(clock)}</span>
+        {sections && sec + 1 < sections.length ? (
+          <button className="btn-accent" onClick={() => { if (window.confirm("Close this section? You cannot come back to it.")) nextSection(); }}>Next section</button>
+        ) : (
+          <button className="btn-accent" onClick={() => { if (window.confirm(`Submit now? ${qs.length - nAnswered} unanswered.`)) (sections ? nextSection() : finish()); }}>Submit</button>
+        )}
       </header>
       <div className="flex-1 min-h-0 flex">
         <nav className="w-44 shrink-0 border-r border-line bg-panel p-2 overflow-auto max-sm:hidden" aria-label="Questions">
           <div className="label mb-1.5">Questions</div>
           <div className="grid grid-cols-5 gap-1">
-            {qs.map((x, i) => (
+            {qs.map((x, i) => !inSec(i) ? null : (
               <button key={qid(x)} onClick={() => setCur(i)} aria-current={i === cur} aria-label={`Question ${i + 1}${answered(x) ? ", answered" : ""}${flags.has(i) ? ", flagged" : ""}`}
                 className={cn("relative h-7 rounded border text-xs num", i === cur ? "border-fg text-fg" : "border-line text-muted", answered(x) && "bg-inset text-fg")}>
                 {i + 1}
@@ -297,8 +399,8 @@ export function OaRoom({ setId }: { setId: string }) {
             )}
           </div>
           <footer className="h-11 shrink-0 border-t border-line bg-panel flex items-center gap-2 px-3">
-            <button className="btn" onClick={() => setCur((c) => c - 1)} disabled={cur === 0}>Previous</button>
-            <button className="btn" onClick={() => setCur((c) => c + 1)} disabled={cur === qs.length - 1}>Next</button>
+            <button className="btn" onClick={() => setCur((c) => c - 1)} disabled={cur <= (secIdx[0] ?? 0)}>Previous</button>
+            <button className="btn" onClick={() => setCur((c) => c + 1)} disabled={cur >= (secIdx[secIdx.length - 1] ?? qs.length - 1)}>Next</button>
             <button className={cn("btn", flags.has(cur) && "border-warn text-warn")} onClick={() => setFlags((f) => { const n = new Set(f); n.has(cur) ? n.delete(cur) : n.add(cur); return n; })}><Flag {...ICON} /> {flags.has(cur) ? "Flagged" : "Flag"}</button>
             {blur > 0 && <span className="ml-auto text-xs text-warn num">Left the tab {blur}×</span>}
           </footer>

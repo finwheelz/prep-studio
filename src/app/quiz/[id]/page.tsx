@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { TOPICS, TRACK_META, topicById } from "@/data/syllabus";
 import { QuizRunner } from "./QuizRunner";
 
-const MIX = ["mix-all", ...TRACK_META.map((t) => `mix-${t.id}`)];
+const MIX = ["mix-all", "mix-due", "mix-weak", ...TRACK_META.map((t) => `mix-${t.id}`)];
 
 export function generateStaticParams() {
   return [...TOPICS.map((t) => ({ id: t.id })), ...MIX.map((id) => ({ id }))];

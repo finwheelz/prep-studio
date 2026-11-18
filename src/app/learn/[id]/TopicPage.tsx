@@ -85,6 +85,8 @@ export function TopicPage({ id }: { id: string }) {
               <Link className="btn-accent" href={`/quiz/${t.id}`}>All questions</Link>
               <Link className={cn("btn", p.quizTried === qs.length && "opacity-50 pointer-events-none")} href={`/quiz/${t.id}?mode=new`}>Not yet tried ({qs.length - p.quizTried})</Link>
               <Link className={cn("btn", wrong === 0 && "opacity-50 pointer-events-none")} href={`/quiz/${t.id}?mode=wrong`}>Got wrong last time ({wrong})</Link>
+              <Link className="btn" href={`/quiz/${t.id}?timed=1`}>Timed</Link>
+              <Link className="btn" href={`/quiz/${t.id}?mode=due`}>Repeats due</Link>
             </div>
           </section>
           {ps.length > 0 && (

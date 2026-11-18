@@ -305,7 +305,13 @@ export function ProblemStudio({ problem, onSolved }: { problem: CodeProblem; onS
               ) : output.result ? (
                 <ResultTable data={output.result} />
               ) : (
-                <pre className="p-3 text-xs font-mono whitespace-pre-wrap overflow-auto h-full">{output.stdout || "(no output)"}</pre>
+                <div className="p-3 overflow-auto h-full">
+                  <pre className="text-xs font-mono whitespace-pre-wrap">{output.stdout || (output.figures?.length ? "" : "(no output)")}</pre>
+                  {output.figures?.map((f, i) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={i} alt={`Figure ${i + 1}`} src={`data:image/png;base64,${f}`} className="mt-2 max-w-full rounded border border-line bg-white" />
+                  ))}
+                </div>
               )}
             </Tabs.Content>
             <Tabs.Content value="plan" className="flex-1 min-h-0 outline-none overflow-auto">

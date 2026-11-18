@@ -14,11 +14,13 @@ interface PyOut {
   stdout: string;
   error: string | null;
   tests: PyTestOut[];
+  /** Base64 PNGs of matplotlib figures left open after the run. */
+  figures?: string[];
 }
 
 const BASE = process.env.NEXT_PUBLIC_BASE_PATH || "";
 const TIMEOUT_MS = 10_000;
-/** First boot downloads the runtime (and wheels, for pandas problems), so allow longer. */
+/** First boot downloads the runtime and any wheels from this site, so allow longer. */
 const BOOT_TIMEOUT_MS = 90_000;
 
 let worker: Worker | null = null;
@@ -68,11 +70,11 @@ export async function runPython(problem: PythonProblem, code: string): Promise<R
       tests: sample ? [{ id: sample.id, call: sample.call, expected: sample.expected }] : [],
     });
     const ms = performance.now() - t0;
-    if (out.error) return { ok: false, ms, error: out.error, stdout: out.stdout };
+    if (out.error) return { ok: false, ms, error: out.error, stdout: out.stdout, figures: out.figures };
     const t = out.tests[0];
     const lines = [out.stdout.trimEnd()];
     if (t && sample) lines.push(`>>> ${sample.call}\n${t.error ? t.error : t.actual}`);
-    return { ok: !t?.error, ms, stdout: lines.filter(Boolean).join("\n"), error: t?.error ?? undefined };
+    return { ok: !t?.error, ms, stdout: lines.filter(Boolean).join("\n"), error: t?.error ?? undefined, figures: out.figures };
   } catch (e) {
     return { ok: false, ms: performance.now() - t0, error: e instanceof Error ? e.message : String(e) };
   }

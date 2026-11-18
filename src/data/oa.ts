@@ -20,6 +20,8 @@ function paper(tracks: TrackKey[], n: number, seed: number, modules?: string[]):
   return out;
 }
 
+const moduleTitles = (module: string) => TOPICS.filter((t) => t.module === module).map((t) => t.title);
+
 /**
  * OA sets mirror the structure students reported, not the questions. Items are practice
  * questions written for this bank.
@@ -33,6 +35,22 @@ export const OA_SETS: OaSet[] = [
     tracks: [],
     codingIds: [],
     items: paper(["aptitude"], 40, 11),
+  },
+  {
+    // Sectional format: separate clocks, locked sections, a cutoff per section. Cutoffs here are
+    // practice defaults, not figures reported by any company.
+    id: "oa-aptitude-sectional",
+    title: "Sectional aptitude mock: quant, reasoning, DI",
+    mirrors: "Sectional OA format: each section timed separately, with its own cutoff (practice cutoffs)",
+    minutes: 40,
+    tracks: [],
+    codingIds: [],
+    items: [...paper(["aptitude"], 15, 23, ["Quantitative"]), ...paper(["aptitude"], 9, 24, ["Logical reasoning"]), ...paper(["aptitude"], 6, 25, ["Data interpretation"])],
+    sections: [
+      { title: "Quantitative", minutes: 20, cutoffPct: 60, topics: moduleTitles("Quantitative") },
+      { title: "Logical reasoning", minutes: 12, cutoffPct: 60, topics: moduleTitles("Logical reasoning") },
+      { title: "Data interpretation", minutes: 8, cutoffPct: 50, topics: moduleTitles("Data interpretation") },
+    ],
   },
   {
     id: "oa-ds-concepts",

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { PracticePanel } from "@/components/practice/PracticePanel";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Card, TrackKey } from "@/lib/types";
@@ -94,6 +95,8 @@ export function Revise() {
         <h1 className="text-xl font-semibold tracking-tight">Revise</h1>
         <p className="text-xs text-muted mt-0.5">Spaced repetition: cards you find hard come back sooner, easy ones later. Each session is everything due plus up to {NEW_PER_SESSION} new cards.</p>
       </header>
+
+      <PracticePanel />
 
       <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Scope">
         <button role="tab" aria-selected={!track && !topicId} onClick={() => setScope(null)} className={cn("h-6 px-2 rounded border text-xs", !track && !topicId ? "border-fg bg-fg text-bg" : "border-line text-muted hover:text-fg")}>All tracks</button>

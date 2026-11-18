@@ -306,6 +306,8 @@ export interface RunOutput {
   stdout?: string;
   error?: string;
   plan?: string;
+  /** Python only: base64 PNGs of matplotlib figures. */
+  figures?: string[];
 }
 
 // ───────────────────────── OA simulator ─────────────────────────
@@ -321,6 +323,16 @@ export interface OaItem {
   explain: string;
 }
 
+/** A timed section of a sectional mock. Items belong to the first section whose topics list their topic. */
+export interface OaSection {
+  title: string;
+  minutes: number;
+  /** Minimum % correct to clear the section. */
+  cutoffPct: number;
+  /** OaItem.topic values in this section; "coding" takes the set's coding questions. */
+  topics: string[] | "coding";
+}
+
 export interface OaSet {
   id: string;
   title: string;
@@ -330,6 +342,8 @@ export interface OaSet {
   /** Problem ids from the bank to append as coding sections. */
   codingIds: string[];
   tracks: TrackId[];
+  /** Sectional mock: each section has its own clock and cutoff; earlier sections lock. */
+  sections?: OaSection[];
 }
 
 // ───────────────────────── User state ─────────────────────────
@@ -361,6 +375,7 @@ export interface OaResult {
   total: number;
   secUsed: number;
   byTopic: Record<string, { right: number; total: number }>;
+  bySection?: { title: string; right: number; total: number; cutoffPct: number; cleared: boolean }[];
 }
 
 export interface UserProgress {
@@ -380,6 +395,10 @@ export interface UserProgress {
   cards: Record<string, CardState>;
   /** Topics whose notes were marked as read. */
   read: Record<string, boolean>;
+  /** Wrong answers, newest first, capped at 3,000. */
+  errors: ErrorEntry[];
+  /** Spaced repeats of missed items, keyed by quiz item id. */
+  repeats: Record<string, RepeatState>;
 }
 
 // ───────────────────────── Syllabus: learn / practise / revise ─────────────────────────
@@ -417,6 +436,16 @@ export interface QuizItem {
   answer: number;
   tol?: number;
   explain: string;
+  /** Time benchmark in seconds (required for new content). */
+  secs?: number;
+  /** Fastest method, shown before the explanation. */
+  fast?: string;
+  /** The common wrong method and why it fails. */
+  trap?: string;
+  /** Where the pattern comes from, with a date. */
+  src?: string;
+  /** True for content authored with an explicit, stable id (see build.ts `Item`). */
+  fixedId?: boolean;
 }
 
 export interface Card {
@@ -432,6 +461,39 @@ export interface QuizStat {
   last: number;
   /** Result of the most recent attempt. */
   ok: boolean;
+  /** Total seconds spent across attempts (for per-topic time). Absent on old records. */
+  secs?: number;
+}
+
+/** One wrong (or timed-out) answer. The error log is append-only and capped. */
+export interface ErrorEntry {
+  item: string;
+  topic: string;
+  at: number;
+  /** What was chosen or typed; "" for a timeout or blank. */
+  given: string;
+  secs: number;
+  from: "quiz" | "oa";
+  timeout?: boolean;
+}
+
+/** A missed item comes back 1, 3 and 7 days after the miss; a miss on any repeat restarts the cycle. */
+export interface RepeatState {
+  /** Day of the miss, YYYY-MM-DD. */
+  missed: string;
+  /** Repeats already passed: 0, 1 or 2. */
+  step: 0 | 1 | 2;
+  /** Next due day, YYYY-MM-DD. */
+  due: string;
+}
+
+/** Extra fields an answer can carry. */
+export interface AnswerMeta {
+  secs?: number;
+  given?: string;
+  topic?: string;
+  from?: "quiz" | "oa";
+  timeout?: boolean;
 }
 
 /** SM-2 scheduling state for one flashcard. */

@@ -35,4 +35,24 @@ export function C(front: string, back: string) {
   CARDS.push({ id: `${current}-c${i}`, topic: current, front, back });
 }
 
+const seen = new Set<string>();
+const claim = (id: string) => {
+  if (seen.has(id)) throw new Error(`duplicate content id ${id}`);
+  seen.add(id);
+  return id;
+};
+
+/**
+ * New content: a quiz item with an explicit id that never changes, so items can be inserted,
+ * reordered or retired without touching anyone's saved progress. Use this instead of Q()/N().
+ */
+export function Item(q: Omit<QuizItem, "topic" | "fixedId"> & { topic?: string; secs: number }) {
+  QUIZ.push({ ...q, id: claim(q.id), topic: q.topic ?? current, fixedId: true });
+}
+
+/** New content: a flashcard with an explicit, stable id. */
+export function Card_(id: string, front: string, back: string, topic = current) {
+  CARDS.push({ id: claim(id), topic, front, back });
+}
+
 export const R = (label: string, url: string, note?: string): Resource => ({ label, url, note });

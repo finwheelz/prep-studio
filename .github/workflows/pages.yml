@@ -1,14 +1,15 @@
-name: Deploy to GitHub Pages
+name: Verify and deploy to GitHub Pages
 on:
   push:
     branches: [main]
+  pull_request:
   workflow_dispatch:
 permissions:
   contents: read
   pages: write
   id-token: write
 concurrency:
-  group: pages
+  group: pages-${{ github.ref }}
   cancel-in-progress: true
 jobs:
   build:
@@ -17,21 +18,36 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
+      # The Pyodide wheels (~150 MB) are cached between runs; on a miss they come from the
+      # official Pyodide GitHub release and are checked against the sha256 in pyodide-lock.json.
+      - uses: actions/cache@v4
+        with:
+          path: public/pyodide
+          key: pyodide-${{ hashFiles('package-lock.json', 'scripts/copy-pyodide.mjs', 'vendor/*') }}
       - run: npm ci
-      - run: npm run typecheck
-      - name: Verify every SQL reference solution runs
+      - run: npm run wheels
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Content integrity and verification manifest
+        run: npx tsx scripts/stats.mts
+      - name: Every Python solution passes its tests in Pyodide
+        run: npx tsx scripts/verify-py.mts --quiet
+      - name: Every SQL reference solution runs
         run: npx tsx scripts/verify-sql.mts --quiet
       - run: npm run build
         env:
           STATIC_EXPORT: "1"
           NEXT_PUBLIC_BASE_PATH: /${{ github.event.repository.name }}
+          NEXT_PUBLIC_REPO: ${{ github.repository }}
       - run: touch out/.nojekyll
-      - uses: actions/upload-pages-artifact@v3
+      - if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
         with:
           path: out
   deploy:
+    if: github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     environment:
