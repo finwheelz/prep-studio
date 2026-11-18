@@ -68,7 +68,9 @@ const text = JSON.stringify(sorted, null, 1) + "\n";
 console.log(`${items.length} items with a check: ${items.length - bad} verified, ${bad} failed; ${QUIZ.length - items.length} items have no check`);
 if (CHECK) {
   const committed = existsSync(OUT) ? readFileSync(OUT, "utf8") : "";
-  if (committed.trim() !== text.trim()) {
+  if (committed.replace(/
+/g, "
+").trim() !== text.trim()) {
     console.log(`${OUT} is out of date: run npx tsx scripts/verify-items.mts and commit the result`);
     process.exit(1);
   }
