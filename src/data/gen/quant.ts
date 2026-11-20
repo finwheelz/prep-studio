@@ -20,10 +20,12 @@ export interface GenQ {
   fast: string;
   trap: string;
   py: string;
+  /** Pyodide packages the Python check needs (e.g. scipy). */
+  packages?: string[];
 }
 
 export type Rng = () => number;
-export type Made = Pick<GenQ, "prompt" | "answer" | "explain" | "py"> & { tol?: number; options?: string[] };
+export type Made = Pick<GenQ, "prompt" | "answer" | "explain" | "py"> & { tol?: number; options?: string[]; packages?: string[] };
 export interface Tpl {
   key: string;
   d: 1 | 2 | 3;
