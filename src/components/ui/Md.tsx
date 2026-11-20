@@ -3,6 +3,7 @@
 import katex from "katex";
 import { Fragment, memo, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { MiniChart } from "./MiniChart";
 
 /** KaTeX block or inline. Rendering is synchronous and cheap at this scale. */
 export const Tex = memo(function Tex({ tex, block = false, className }: { tex: string; block?: boolean; className?: string }) {
@@ -47,14 +48,19 @@ export const Md = memo(function Md({ source, className }: { source: string; clas
       continue;
     }
     if (line.startsWith("```")) {
+      const lang = line.slice(3).trim();
       const buf: string[] = [];
       i++;
       while (i < lines.length && !lines[i].startsWith("```")) buf.push(lines[i++]);
       i++;
       blocks.push(
-        <pre key={k++}>
-          <code>{buf.join("\n")}</code>
-        </pre>,
+        lang === "chart" ? (
+          <MiniChart key={k++} source={buf.join("\n")} />
+        ) : (
+          <pre key={k++}>
+            <code>{buf.join("\n")}</code>
+          </pre>
+        ),
       );
       continue;
     }

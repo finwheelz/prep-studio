@@ -16,6 +16,7 @@ import "./p2-arithmetic";
 import "./p1-core-python";
 import "./p1-dsa";
 import "./p2-b4";
+import "./p2-b5";
 import "./p3-ttests";
 import type { TrackKey } from "@/lib/types";
 import { CARDS, QUIZ, TOPICS } from "./build";

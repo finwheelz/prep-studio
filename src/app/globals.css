@@ -110,5 +110,11 @@
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
 
 /* Syntax palette: desaturated, readable on both surfaces. Not used for status. */
+/* Chart categorical slots (dataviz reference palette, validated against these surfaces:
+   light #ffffff, dark #121214). Fixed order, never cycled. Light slots 3–5 are below 3:1,
+   so every chart prints its values (relief rule). */
+:root { --series-1: 42 120 214; --series-2: 235 104 52; --series-3: 27 175 122; --series-4: 237 161 0; --series-5: 232 123 164; }
+.dark { --series-1: 57 135 229; --series-2: 217 89 38; --series-3: 25 158 112; --series-4: 201 133 0; --series-5: 213 81 129; }
+
 :root { --syn-kw: 109 40 217; --syn-str: 161 98 7; --syn-num: 3 105 161; --syn-fn: 24 24 27; --syn-com: 113 113 122; }
 .dark { --syn-kw: 196 181 253; --syn-str: 253 186 116; --syn-num: 125 211 252; --syn-fn: 244 244 245; --syn-com: 113 113 122; }
