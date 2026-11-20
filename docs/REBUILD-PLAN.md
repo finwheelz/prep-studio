@@ -30,7 +30,7 @@ SQL, Product and Consulting stay on the site exactly as they are; no new content
 | B1 | done Nov 19 | P2 arithmetic, clocks and calendars, number systems | 12 |
 | B2 | done Nov 19 | P1 core Python · P2 P&C | 12 |
 | B3 | done Nov 20 | P1 DSA | 12 |
-| B4 | Dec 2–5 | P2 algebra, geometry · LR series, coding-decoding, analogy | 12 |
+| B4 | done Nov 21 | P2 algebra, geometry · LR series, coding-decoding, analogy | 12 |
 | B5 | Dec 6–9 | P2 rest of LR · DILR charts and caselets | 11 |
 | B6 | Dec 10–13 | P2 DILR logic sets · P3 probability (first 8) | 12 |
 | B7 | Dec 14–17 | P3 probability (last 4) · statistics (8) | 12 |
