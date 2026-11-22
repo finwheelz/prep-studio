@@ -37,7 +37,7 @@ SQL, Product and Consulting stay on the site exactly as they are; no new content
 | B8 | done Nov 21 | P3 rest of statistics and the decision tree · P4 (first 5) | 12 |
 | B9 | done Nov 22 | P4 (last 7) · P1 numpy | 12 |
 | B10 | done Nov 22 | P1 pandas, plotting | 11 |
-| B11 | Dec 30–Jan 2 | P1 rest of scikit-learn, PyTorch, Keras | 11 |
+| B11 | done Nov 23 | P1 rest of scikit-learn (7), PyTorch (4), Keras (1) | 12 |
 | Buffer | Jan 3–10 | Late batches, fixes from your sample reviews | — |
 
 This is about 12 concepts every 4 days, roughly 10% more per batch than the earlier plan, because nothing was cut.
