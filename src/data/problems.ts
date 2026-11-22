@@ -8,8 +8,10 @@ import { P1_PROBLEMS } from "./problems-p1";
 import { P1_CORE_PROBLEMS } from "./problems-p1-core";
 import { P1_DSA_PROBLEMS } from "./problems-p1-dsa";
 import { P1_NUMPY_PROBLEMS } from "./problems-p1-numpy";
+import { P1_PANDAS_PROBLEMS } from "./problems-p1-pandas";
+import { P1_PLOT_PROBLEMS } from "./problems-p1-plot";
 
-export const PROBLEMS: Problem[] = [...CODE_PROBLEMS, ...SQL_MORE, ...PY_MORE, ...CONCEPT_PROBLEMS, ...CASE_PROBLEMS, ...P1_PROBLEMS, ...P1_CORE_PROBLEMS, ...P1_DSA_PROBLEMS, ...P1_NUMPY_PROBLEMS];
+export const PROBLEMS: Problem[] = [...CODE_PROBLEMS, ...SQL_MORE, ...PY_MORE, ...CONCEPT_PROBLEMS, ...CASE_PROBLEMS, ...P1_PROBLEMS, ...P1_CORE_PROBLEMS, ...P1_DSA_PROBLEMS, ...P1_NUMPY_PROBLEMS, ...P1_PANDAS_PROBLEMS, ...P1_PLOT_PROBLEMS];
 
 export const problemById = (id: string) => PROBLEMS.find((p) => p.id === id);
 export const problemsByPillar = (pillar: string) => PROBLEMS.filter((p) => p.pillar === pillar);

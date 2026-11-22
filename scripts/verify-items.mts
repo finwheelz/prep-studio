@@ -35,7 +35,11 @@ for (const q of items) {
     } else {
       const need = (c.packages ?? []).filter((p) => !loaded.has(p));
       if (need.length) {
-        await py.loadPackage(need, { messageCallback: () => {} });
+        // Seaborn is not in the Pyodide distribution: load its vendored wheel after its dependencies.
+        const plain = need.filter((p) => p !== "seaborn");
+        if (need.includes("seaborn")) plain.push("numpy", "pandas", "matplotlib", "scipy");
+        await py.loadPackage(plain, { messageCallback: () => {} });
+        if (need.includes("seaborn")) await py.loadPackage(dir + "seaborn-0.13.2-py3-none-any.whl", { messageCallback: () => {} });
         need.forEach((p) => loaded.add(p));
       }
       const ns = py.globals.get("dict")();
