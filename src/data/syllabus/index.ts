@@ -20,6 +20,7 @@ import "./p2-b5";
 import "./p-b6";
 import "./p-b7";
 import "./p-b8";
+import "./p-b9";
 import "./p3-ttests";
 import type { TrackKey } from "@/lib/types";
 import { CARDS, QUIZ, TOPICS } from "./build";

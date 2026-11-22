@@ -35,7 +35,7 @@ SQL, Product and Consulting stay on the site exactly as they are; no new content
 | B6 | done Nov 21 | P2 DILR logic sets · P3 probability (first 8) | 12 |
 | B7 | done Nov 21 | P3 probability (last 4) · statistics (8) | 12 |
 | B8 | done Nov 21 | P3 rest of statistics and the decision tree · P4 (first 5) | 12 |
-| B9 | Dec 22–25 | P4 (last 7) · P1 numpy | 12 |
+| B9 | done Nov 22 | P4 (last 7) · P1 numpy | 12 |
 | B10 | Dec 26–29 | P1 pandas, plotting | 11 |
 | B11 | Dec 30–Jan 2 | P1 rest of scikit-learn, PyTorch, Keras | 11 |
 | Buffer | Jan 3–10 | Late batches, fixes from your sample reviews | — |
