@@ -4,7 +4,7 @@ import * as TooltipPrimitive from "@radix-ui/react-tooltip";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
-import { BookOpen, Boxes, Code2, Flame, Layers, LayoutDashboard, Moon, PanelLeft, Search, Sun, Timer } from "lucide-react";
+import { BookOpen, Boxes, Code2, Map as MapIcon, Flame, Layers, LayoutDashboard, Moon, PanelLeft, Search, Sun, Timer } from "lucide-react";
 import { useStore, streakOf } from "@/lib/store";
 import { useBootStore, useHotkey, useHydrated, useIsMac } from "@/lib/hooks";
 import { cn, dayKey } from "@/lib/utils";
@@ -13,11 +13,12 @@ import { CommandPalette } from "./CommandPalette";
 import { dailyFor } from "@/lib/daily";
 
 const NAV = [
-  { href: "/", label: "Dashboard", short: "Home", icon: LayoutDashboard, match: (p: string) => p === "/" },
+  { href: "/", label: "Home", short: "Home", icon: LayoutDashboard, match: (p: string) => p === "/" },
   { href: "/learn", label: "Learn", short: "Learn", icon: BookOpen, match: (p: string) => p.startsWith("/learn") || p.startsWith("/quiz") },
+  { href: "/roadmap", label: "Roadmaps", short: "Roadmap", icon: MapIcon, match: (p: string) => p.startsWith("/roadmap") || p.startsWith("/mock") },
   { href: "/problems", label: "Practise", short: "Practise", icon: Code2, match: (p: string) => p.startsWith("/problems") || p.startsWith("/p/") },
   { href: "/revise", label: "Revise", short: "Revise", icon: Layers, match: (p: string) => p.startsWith("/revise") },
-  { href: "/drill", label: "Daily Drill & OA", short: "Drill", icon: Timer, match: (p: string) => p.startsWith("/drill") },
+  { href: "/drill", label: "Drill & OA", short: "Drill", icon: Timer, match: (p: string) => p.startsWith("/drill") },
 ] as const;
 
 function ThemeSync() {
@@ -68,7 +69,7 @@ function NavLinks({ collapsed }: { collapsed: boolean }) {
 function MobileNav() {
   const pathname = usePathname();
   return (
-    <nav className="md:hidden shrink-0 grid grid-cols-5 border-t border-line bg-panel pb-[env(safe-area-inset-bottom)]" aria-label="Primary">
+    <nav className="md:hidden shrink-0 grid grid-cols-6 border-t border-line bg-panel pb-[env(safe-area-inset-bottom)]" aria-label="Primary">
       {NAV.map((n) => {
         const active = n.match(pathname);
         const Icon = n.icon;

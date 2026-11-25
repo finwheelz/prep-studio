@@ -4,7 +4,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import Link from "next/link";
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, ChevronRight, ExternalLink } from "lucide-react";
-import { TOPICS, TRACK_META, cardsFor, quizFor, topicById } from "@/data/syllabus";
+import { TOPICS, TRACK_META, cardsFor, moduleOf, quizFor, topicById } from "@/data/syllabus";
 import { KIND_LABEL } from "@/data/problems";
 import { useStore } from "@/lib/store";
 import { useHydrated } from "@/lib/hooks";
@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Bar, DifficultyBadge, ICON, SourceTag, StatusDot } from "@/components/ui/bits";
 import { Md } from "@/components/ui/Md";
 import { InterviewQs } from "@/components/ui/InterviewQs";
+import { LessonMeta, LessonView } from "@/components/ui/LessonView";
 
 export function TopicPage({ id }: { id: string }) {
   const t = topicById(id)!;
@@ -34,7 +35,8 @@ export function TopicPage({ id }: { id: string }) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
 
   return (
-    <div className="max-w-[900px] mx-auto p-4">
+    <div className={cn("mx-auto p-4", t.lesson ? "max-w-[1180px] lg:grid lg:grid-cols-[minmax(0,1fr)_240px] lg:gap-8" : "max-w-[900px]")}>
+    <div className="min-w-0">
       <div className="flex items-center gap-1.5 text-xs text-muted mb-1.5">
         <Link href={`/learn?track=${t.track}`} className="hover:text-fg">{track.label}</Link>
         <ChevronRight {...ICON} size={12} className="text-faint" />
@@ -42,6 +44,7 @@ export function TopicPage({ id }: { id: string }) {
       </div>
       <h1 className="text-2xl font-semibold tracking-tight">{t.title}</h1>
       <p className="text-sm text-muted mt-1">{t.summary}</p>
+      {t.lesson && <LessonMeta l={t.lesson} />}
 
       <div className="pane grid grid-cols-3 mt-3 text-xs">
         <div className="p-2.5 border-r border-line">
@@ -70,13 +73,13 @@ export function TopicPage({ id }: { id: string }) {
         </Tabs.List>
 
         <Tabs.Content value="learn" className="pt-4 outline-none">
-          <Md source={t.notes} className="[&_p]:leading-7 [&_li]:leading-7" />
+          {t.lesson ? <LessonView t={t} /> : <Md source={t.notes} className="[&_p]:leading-7 [&_li]:leading-7" />}
           {t.interview?.length ? <InterviewQs items={t.interview} /> : null}
           <div className="flex flex-wrap items-center gap-2 mt-5 pt-3 border-t border-line">
             <button className={cn("btn", isRead && "border-accent text-accent")} onClick={() => s.toggleRead(t.id)}>
               <Check {...ICON} /> {isRead ? "Marked as read" : "Mark as read"}
             </button>
-            <Link className="btn-accent" href={`/quiz/${t.id}`}>Test yourself: {qs.length} questions</Link>
+            {qs.length > 0 && <Link className="btn-accent" href={`/quiz/${t.id}`}>Test yourself: {qs.length} questions</Link>}
           </div>
         </Tabs.Content>
 
@@ -148,6 +151,29 @@ export function TopicPage({ id }: { id: string }) {
         {prev && <Link className="btn" href={`/learn/${prev.id}`}><ArrowLeft {...ICON} /> {prev.title}</Link>}
         {next && <Link className="btn ml-auto" href={`/learn/${next.id}`}>{next.title} <ArrowRight {...ICON} /></Link>}
       </nav>
+    </div>
+    {t.lesson && (
+      <aside className="hidden lg:block" aria-label="Module outline">
+        <div className="sticky top-4 pane">
+          <div className="pane-head"><span className="text-fg font-medium truncate">{t.module}</span></div>
+          <ol className="py-1">
+            {moduleOf(t.id).map((m, i) => {
+              const cur = m.id === t.id;
+              const done = hydrated && !!s.read[m.id];
+              return (
+                <li key={m.id}>
+                  <Link href={`/learn/${m.id}`} aria-current={cur ? "page" : undefined} className={cn("flex items-start gap-2 px-3 py-1.5 text-xs hover:bg-inset", cur ? "text-fg font-medium bg-inset" : "text-muted")}>
+                    <span className={cn("num w-4 shrink-0", done ? "text-accent" : "text-faint")}>{done ? "✓" : i + 1}</span>
+                    <span className="flex-1 leading-4">{m.title}</span>
+                    {m.lesson && <span className="num text-faint shrink-0">{m.lesson.mins}m</span>}
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      </aside>
+    )}
     </div>
   );
 }

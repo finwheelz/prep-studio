@@ -4,6 +4,7 @@ import { PROBLEMS } from "../src/data/problems";
 import { CATEGORIES } from "../src/data/taxonomy";
 import VERIFIED from "../src/data/verified.json";
 import { itemHash } from "../src/lib/verified";
+import { CURRICULUM } from "../src/data/curriculum";
 
 let bad = 0;
 const ids = new Set<string>();
@@ -19,6 +20,13 @@ for (const q of QUIZ) {
   if (qids.has(q.id)) { bad++; console.log("DUP quiz id", q.id); }
   qids.add(q.id);
   if (q.fixedId && !(q.secs && q.secs > 0)) { bad++; console.log("NO time benchmark", q.id); }
+}
+// v2 tracks: every lesson sits in a planned module (roadmaps link by module name) and has a lesson body.
+for (const t of TOPICS) {
+  const mods = CURRICULUM[t.track];
+  if (!mods) continue;
+  if (!mods.includes(t.module)) { bad++; console.log("module not in curriculum", t.id, t.module); }
+  if (!t.lesson) { bad++; console.log("v2 topic without lesson", t.id); }
 }
 // Every committed verification entry must still match its item; a stale entry fails the build.
 for (const [id, h] of Object.entries(VERIFIED as Record<string, string>)) {

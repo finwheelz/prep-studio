@@ -12,6 +12,24 @@ export const Tex = memo(function Tex({ tex, block = false, className }: { tex: s
   return <Tag className={className} dangerouslySetInnerHTML={{ __html: html }} />;
 });
 
+/** Split a table row on "|" outside $math$ and `code`, so norms like $\|x\|$ survive. */
+function splitRow(row: string) {
+  const out: string[] = [];
+  let cur = "";
+  let math = false;
+  let code = false;
+  for (const ch of row) {
+    if (ch === "$" && !code) math = !math;
+    else if (ch === "`" && !math) code = !code;
+    if (ch === "|" && !math && !code) {
+      out.push(cur.trim());
+      cur = "";
+    } else cur += ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
+
 /** Inline: `code`, **bold**, $math$. */
 function inline(text: string, keyBase: string): ReactNode[] {
   const out: ReactNode[] = [];
@@ -69,6 +87,29 @@ export const Md = memo(function Md({ source, className }: { source: string; clas
       i++;
       continue;
     }
+    if (/^#{2,3} /.test(line)) {
+      blocks.push(<h3 key={k++} className="text-sm font-semibold text-fg mt-5 mb-1.5">{inline(line.replace(/^#{2,3} /, ""), `h${k}`)}</h3>);
+      i++;
+      continue;
+    }
+    if (line.trim().startsWith("|")) {
+      const rows: string[][] = [];
+      while (i < lines.length && lines[i].trim().startsWith("|")) {
+        const cells = splitRow(lines[i].trim().replace(/^\||\|$/g, ""));
+        if (!cells.every((c) => /^:?-{2,}:?$/.test(c))) rows.push(cells);
+        i++;
+      }
+      const [head, ...body] = rows;
+      blocks.push(
+        <div key={k++} className="overflow-x-auto my-3">
+          <table className="dt border border-line">
+            <thead><tr>{head.map((c, j) => <th key={j}>{inline(c, `th${k}-${j}`)}</th>)}</tr></thead>
+            <tbody>{body.map((r, ri) => <tr key={ri}>{r.map((c, j) => <td key={j} className="!whitespace-normal align-top">{inline(c, `td${k}-${ri}-${j}`)}</td>)}</tr>)}</tbody>
+          </table>
+        </div>,
+      );
+      continue;
+    }
     if (/^- /.test(line) || /^\d+\. /.test(line)) {
       const ordered = /^\d+\. /.test(line);
       const start = ordered ? /^\d+\. / : /^- /;
@@ -99,7 +140,7 @@ export const Md = memo(function Md({ source, className }: { source: string; clas
       continue;
     }
     const buf: string[] = [];
-    while (i < lines.length && lines[i].trim() && !/^(```|- |\d+\. )/.test(lines[i])) buf.push(lines[i++]);
+    while (i < lines.length && lines[i].trim() && !/^(```|- |\d+\. |#{2,3} |\s*\|)/.test(lines[i])) buf.push(lines[i++]);
     blocks.push(
       <p key={k++}>
         {buf.map((b, j) => (

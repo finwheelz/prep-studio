@@ -8,7 +8,7 @@ import { useStore } from "@/lib/store";
 import { PROBLEMS, KIND_LABEL } from "@/data/problems";
 import { CATEGORIES, COMPANIES, PILLARS, TRACKS, categoryById, companyById } from "@/data/taxonomy";
 import { OA_SETS } from "@/data/oa";
-import { TOPICS, TRACK_META } from "@/data/syllabus";
+import { TOPICS, TRACK_META, ACTIVE_TRACKS } from "@/data/syllabus";
 import { cn } from "@/lib/utils";
 import { ICON, Kbd, StatusDot } from "@/components/ui/bits";
 
@@ -49,7 +49,7 @@ export function CommandPalette() {
       { id: "go-drill", group: "Go to", label: "Daily Drill & OA Simulator", keywords: "triad streak timed assessment", run: go("/drill") },
       { id: "go-learn", group: "Go to", label: "Learn: syllabus", keywords: "notes topics study", run: go("/learn") },
       { id: "go-revise", group: "Go to", label: "Revise: flashcards", keywords: "spaced repetition cards", run: go("/revise") },
-      ...TRACK_META.map<Item>((t) => ({ id: `mix-${t.id}`, group: "Go to", label: `Mixed quiz: ${t.label}`, keywords: "quiz questions practice", run: go(`/quiz/mix-${t.id}`) })),
+      ...ACTIVE_TRACKS.map<Item>((t) => ({ id: `mix-${t.id}`, group: "Go to", label: `Mixed quiz: ${t.label}`, keywords: "quiz questions practice", run: go(`/quiz/mix-${t.id}`) })),
       ...TOPICS.map<Item>((t) => ({
         id: `topic-${t.id}`,
         group: "Topics",

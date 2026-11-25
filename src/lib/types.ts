@@ -403,7 +403,10 @@ export interface UserProgress {
 
 // ───────────────────────── Syllabus: learn / practise / revise ─────────────────────────
 
-export type TrackKey = "foundations" | "aptitude" | "analyst" | "ml" | "product";
+export type TrackKey =
+  | "python" | "dsa" | "maths" | "cml" | "dl" | "llm" | "aieng" | "sysdesign"
+  // Pre-rebuild tracks: still served, no new content.
+  | "foundations" | "aptitude" | "analyst" | "ml" | "product";
 
 export interface Resource {
   label: string;
@@ -425,6 +428,46 @@ export interface Topic {
   categories?: string[];
   /** Interview questions with a model answer and the points an interviewer listens for. */
   interview?: InterviewQ[];
+  /** v2 lesson anatomy. When set, the Learn tab renders the lesson instead of `notes`. */
+  lesson?: Lesson;
+}
+
+export type LessonKind = "concept" | "interview" | "quiz" | "design";
+export type WidgetId = "poly-fit" | "learning-curve" | "threshold" | "regularization" | "gradient-descent";
+
+export interface Lesson {
+  kind: LessonKind;
+  mins: number;
+  /** One-line question the lesson answers. */
+  hook: string;
+  /** Topic ids worth knowing first. */
+  prereq?: string[];
+  /** Situation, then the idea in plain words (markdown-lite). */
+  intuition?: string;
+  widget?: WidgetId;
+  /** Derivation / mechanics (markdown-lite). Labelled "Code" for Python and DSA. */
+  maths?: string;
+  mathsLabel?: "Maths" | "Code";
+  /** When to use it, defaults, where it shows up. */
+  practice?: string;
+  /** The answer that sounds right, and why it's wrong. */
+  traps?: { trap: string; why: string }[];
+  say?: SayIt;
+  terms?: [string, string][];
+  /** Every source carries the date it was last checked (YYYY-MM-DD). */
+  sources?: { label: string; url?: string; checked: string }[];
+}
+
+export interface SayIt {
+  prompt: string;
+  secs: number;
+  /** Points to tick off after answering out loud. */
+  check: string[];
+  followups: { q: string; a: string }[];
+  /** Model answer (markdown-lite). */
+  answer: string;
+  /** Things that sound fine but cost you the round. */
+  avoid: string[];
 }
 
 export interface InterviewQ {

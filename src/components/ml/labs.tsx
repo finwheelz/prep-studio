@@ -10,7 +10,7 @@ import { cn, fmtInt, mulberry32 } from "@/lib/utils";
  * Where two series share a plot they differ by fill (solid vs outlined), not by hue alone.
  */
 
-function ParamSlider({ label, value, min, max, step, onChange, format }: { label: ReactNode; value: number; min: number; max: number; step: number; onChange: (v: number) => void; format?: (v: number) => string }) {
+export function ParamSlider({ label, value, min, max, step, onChange, format }: { label: ReactNode; value: number; min: number; max: number; step: number; onChange: (v: number) => void; format?: (v: number) => string }) {
   return (
     <div className="flex items-center gap-3">
       <div className="text-xs text-muted w-36 shrink-0">{label}</div>
@@ -25,7 +25,7 @@ function ParamSlider({ label, value, min, max, step, onChange, format }: { label
   );
 }
 
-function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "accent" | "danger" }) {
+export function Stat({ label, value, sub, tone }: { label: string; value: string; sub?: string; tone?: "accent" | "danger" }) {
   return (
     <div className="px-3 py-2 border-r border-line last:border-r-0 min-w-0">
       <div className="label">{label}</div>

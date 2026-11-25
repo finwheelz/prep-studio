@@ -5,7 +5,7 @@ import { useMemo } from "react";
 import { useStore, competencyStats, streakOf } from "@/lib/store";
 import { useHydrated } from "@/lib/hooks";
 import { COMPETENCIES } from "@/data/taxonomy";
-import { TRACK_META } from "@/data/syllabus";
+import { ACTIVE_TRACKS as TRACK_META } from "@/data/syllabus";
 import { trackProgress } from "@/lib/progress";
 import { cn } from "@/lib/utils";
 import { Bar } from "@/components/ui/bits";

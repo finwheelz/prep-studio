@@ -1,0 +1,38 @@
+/** Sources for the v2 NLP & LLMs track. Every URL was opened and checked on the date given. */
+const CHECKED = "2026-11-25";
+const src = (label: string, url: string) => ({ label, url, checked: CHECKED });
+
+export const LS = {
+  slp3: src("Jurafsky and Martin: Speech and Language Processing (3rd ed. draft)", "https://web.stanford.edu/~jurafsky/slp3/"),
+  hfTok: src("Hugging Face Transformers docs: tokenization algorithms (BPE, WordPiece, Unigram, SentencePiece)", "https://huggingface.co/docs/transformers/tokenizer_summary"),
+  sennrich: src("Sennrich, Haddow, Birch (2015): Neural Machine Translation of Rare Words with Subword Units", "https://arxiv.org/abs/1508.07909"),
+  w2v: src("Mikolov et al. (2013): Efficient Estimation of Word Representations in Vector Space", "https://arxiv.org/abs/1301.3781"),
+  glove: src("Pennington, Socher, Manning: GloVe: Global Vectors for Word Representation", "https://nlp.stanford.edu/projects/glove/"),
+  bleu: src("Papineni et al. (2002): BLEU: a Method for Automatic Evaluation of Machine Translation", "https://aclanthology.org/P02-1040/"),
+  rouge: src("Lin (2004): ROUGE: A Package for Automatic Evaluation of Summaries", "https://aclanthology.org/W04-1013/"),
+  dpr: src("Karpukhin et al. (2020): Dense Passage Retrieval for Open-Domain Question Answering", "https://arxiv.org/abs/2004.04906"),
+  rag: src("Lewis et al. (2020): Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks", "https://arxiv.org/abs/2005.11401"),
+  attn: src("Vaswani et al. (2017): Attention Is All You Need", "https://arxiv.org/abs/1706.03762"),
+  bert: src("Devlin et al. (2018): BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding", "https://arxiv.org/abs/1810.04805"),
+  gpt3: src("Brown et al. (2020): Language Models are Few-Shot Learners", "https://arxiv.org/abs/2005.14165"),
+  rope: src("Su et al. (2021): RoFormer: Enhanced Transformer with Rotary Position Embedding", "https://arxiv.org/abs/2104.09864"),
+  flash: src("Dao et al. (2022): FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness", "https://arxiv.org/abs/2205.14135"),
+  mqa: src("Shazeer (2019): Fast Transformer Decoding: One Write-Head is All You Need", "https://arxiv.org/abs/1911.02150"),
+  gqa: src("Ainslie et al. (2023): GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints", "https://arxiv.org/abs/2305.13245"),
+  switch: src("Fedus, Zoph, Shazeer (2021): Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity", "https://arxiv.org/abs/2101.03961"),
+  kaplan: src("Kaplan et al. (2020): Scaling Laws for Neural Language Models", "https://arxiv.org/abs/2001.08361"),
+  chinchilla: src("Hoffmann et al. (2022): Training Compute-Optimal Large Language Models", "https://arxiv.org/abs/2203.15556"),
+  mixed: src("Micikevicius et al. (2017): Mixed Precision Training", "https://arxiv.org/abs/1710.03740"),
+  zero: src("Rajbhandari et al. (2019): ZeRO: Memory Optimizations Toward Training Trillion Parameter Models", "https://arxiv.org/abs/1910.02054"),
+  instructgpt: src("Ouyang et al. (2022): Training language models to follow instructions with human feedback", "https://arxiv.org/abs/2203.02155"),
+  llama2: src("Touvron et al. (2023): Llama 2: Open Foundation and Fine-Tuned Chat Models", "https://arxiv.org/abs/2307.09288"),
+  dpo: src("Rafailov et al. (2023): Direct Preference Optimization: Your Language Model is Secretly a Reward Model", "https://arxiv.org/abs/2305.18290"),
+  lora: src("Hu et al. (2021): LoRA: Low-Rank Adaptation of Large Language Models", "https://arxiv.org/abs/2106.09685"),
+  qlora: src("Dettmers et al. (2023): QLoRA: Efficient Finetuning of Quantized LLMs", "https://arxiv.org/abs/2305.14314"),
+  distill: src("Hinton, Vinyals, Dean (2015): Distilling the Knowledge in a Neural Network", "https://arxiv.org/abs/1503.02531"),
+  nucleus: src("Holtzman et al. (2019): The Curious Case of Neural Text Degeneration", "https://arxiv.org/abs/1904.09751"),
+  cot: src("Wei et al. (2022): Chain-of-Thought Prompting Elicits Reasoning in Large Language Models", "https://arxiv.org/abs/2201.11903"),
+  selfcons: src("Wang et al. (2022): Self-Consistency Improves Chain of Thought Reasoning in Language Models", "https://arxiv.org/abs/2203.11171"),
+  halluc: src("Huang et al. (2023): A Survey on Hallucination in Large Language Models", "https://arxiv.org/abs/2311.05232"),
+  mmlu: src("Hendrycks et al. (2020): Measuring Massive Multitask Language Understanding", "https://arxiv.org/abs/2009.03300"),
+};

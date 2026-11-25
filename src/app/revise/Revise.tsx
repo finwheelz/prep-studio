@@ -5,7 +5,7 @@ import { PracticePanel } from "@/components/practice/PracticePanel";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Card, TrackKey } from "@/lib/types";
-import { CARDS, TOPICS, TRACK_META, topicById } from "@/data/syllabus";
+import { CARDS, TOPICS, TRACK_META, ACTIVE_TRACKS, topicById } from "@/data/syllabus";
 import { useStore } from "@/lib/store";
 import { useHydrated } from "@/lib/hooks";
 import { cn, dayKey } from "@/lib/utils";
@@ -100,7 +100,7 @@ export function Revise() {
 
       <div className="flex flex-wrap gap-1.5" role="tablist" aria-label="Scope">
         <button role="tab" aria-selected={!track && !topicId} onClick={() => setScope(null)} className={cn("h-6 px-2 rounded border text-xs", !track && !topicId ? "border-fg bg-fg text-bg" : "border-line text-muted hover:text-fg")}>All tracks</button>
-        {TRACK_META.map((t) => (
+        {ACTIVE_TRACKS.map((t) => (
           <button key={t.id} role="tab" aria-selected={track === t.id} onClick={() => setScope(t.id)} className={cn("h-6 px-2 rounded border text-xs", track === t.id ? "border-fg bg-fg text-bg" : "border-line text-muted hover:text-fg")}>{t.label}</button>
         ))}
         {topicId && <span className="h-6 px-2 rounded border border-fg bg-fg text-bg text-xs inline-flex items-center">{scopeLabel}</span>}
